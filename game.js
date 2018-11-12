@@ -1,11 +1,118 @@
 'use strict';
 
+const TILES_X = 40;
+const TILES_Y = 40;
+
 const Direction = Object.freeze({
     UP: Symbol("UP"),
     DOWN: Symbol("DOWN"),
     LEFT: Symbol("LEFT"),
     RIGHT: Symbol("RIGHT"),
 });
+
+let actionsStartTime;
+
+class ActionBase {
+    constructor() {
+        this.actionTime = performance.now() - actionsStartTime;
+    }
+
+    act(state) {
+        // Do nothing in base
+    }
+}
+
+class ActionInitState extends ActionBase {
+    act(state) {
+        return {
+            applePos: null,
+            snakeTiles: [],
+            snakeLength: 4,
+            headPosition: new Vector(1, 1),
+    
+            dir: Direction.RIGHT,
+        };
+    }
+}
+
+class ActionNewApple extends ActionBase {
+    constructor(position) {
+        super();
+
+        this.position = position;
+    }
+
+    act(state) {
+        return Object.assign({}, state, {
+            applePos: this.position,
+        });
+    }
+}
+
+class ActionChangeDirection extends ActionBase {
+    constructor(newDir) {
+        super();
+
+        this.newDir = newDir;
+    }
+
+    act(state) {
+        return Object.assign({}, state, {
+            dir: this.newDir,
+        });
+    }
+}
+
+class ActionSnakeStep extends ActionBase {
+    act(state) {
+        const gameState = Object.assign({}, state);
+
+        let direction;
+        switch (gameState.dir) {
+            case Direction.UP:
+                direction = new Vector(0, 1);
+            break;
+            case Direction.DOWN: 
+            direction = new Vector(0, -1);
+            break;
+            case Direction.LEFT: 
+            direction = new Vector(-1, 0);
+            break;
+            case Direction.RIGHT: 
+            direction = new Vector(1, 0);
+            break;
+        }
+
+        gameState.headPosition = gameState.headPosition.add(direction);
+
+        if (gameState.headPosition.x <= 0) {
+            gameState.headPosition.x = TILES_X - 2;
+        }
+        if (gameState.headPosition.y <= 0) {
+            gameState.headPosition.y = TILES_Y - 2;
+        }
+        if (gameState.headPosition.x >= TILES_X - 1) {
+            gameState.headPosition.x = 1;
+        }
+        if (gameState.headPosition.y >= TILES_Y - 1) {
+            gameState.headPosition.y = 1;
+        }
+
+        gameState.snakeTiles.push(gameState.headPosition.clone());
+
+        // Eat the apple.
+        if (gameState.headPosition.equals(gameState.applePos)) {
+            gameState.snakeLength += 2;
+            gameState.applePos = null;
+        }
+        
+        while (gameState.snakeTiles.length > gameState.snakeLength) {
+            gameState.snakeTiles.splice(0, 1);
+        }
+
+        return gameState;
+    }
+}
 
 class Vector {
     constructor(vx, y) {
@@ -59,9 +166,6 @@ class Vector {
 }
 
 $(() => {
-    const TILES_X = 40;
-    const TILES_Y = 40;
-
     const canvas = $("#canvas");
     let ctx;
     let canvasHeight;
@@ -70,30 +174,17 @@ $(() => {
     let paddingY;
     let tileWidth;
     let tileHeight;
-    let lastUpdateTime = performance.now();
-
-    const gameState = {
-        applesPosition: null,
-        snakeTiles: [],
-        snakeLength: 4,
-        headPosition: new Vector(0, 0),
-
-        direction: new Vector(1, 0),
-    }
+    let lastUpdateTime;
+    let gameState;
+    let savedActions = [];
+    let playbackMode = false;
 
     function init() {
-        initGameData();
+        restartLiveMode();
         updateCanvasDimensions();
         initEventListeners();
         timeout();
     };
-
-    function initGameData() {
-        gameState.tiles = new Array(TILES_X);
-        for (let x = 0; x < TILES_X; ++x) {
-            gameState.tiles[x] = new Array(TILES_Y);
-        }
-    }
 
     function initEventListeners() {
         $(window).bind('resize', updateCanvasDimensions).bind('keydown', onKeyDown);
@@ -103,29 +194,33 @@ $(() => {
         if (event.defaultPrevented) {
             return; // Do nothing if the event was already processed
         }
+        
+        if (event.key === "P") {
+            enterPlaybackMode();
+        } else {
+            let newDirection;
 
-        let newDirection;
+            switch (event.key) {
+                case "ArrowDown":
+                    newDirection = Direction.DOWN;
+                    break;
+                case "ArrowUp":
+                    newDirection = Direction.UP;
+                    break;
+                case "ArrowLeft":
+                    newDirection = Direction.LEFT;
+                    break;
+                case "ArrowRight":
+                    newDirection = Direction.RIGHT;
+                    break;
+                default:
+                    return;
+            }
 
-        switch (event.key) {
-            case "ArrowDown":
-                newDirection = new Vector(0, -1);
-                break;
-            case "ArrowUp":
-                newDirection = new Vector(0, 1);
-                break;
-            case "ArrowLeft":
-                newDirection = new Vector(-1, 0);
-                break;
-            case "ArrowRight":
-                newDirection = new Vector(1, 0);
-                break;
-            default:
-                return;
-        }
-
-        if (!newDirection.equals(gameState.direction)) {
-            gameState.direction = newDirection;
-            snakeStep();
+            if (newDirection !== gameState.dir) {
+                applyAction(new ActionChangeDirection(newDirection));
+                applyAction(new ActionSnakeStep());
+            }
         }
 
         event.preventDefault();
@@ -157,42 +252,21 @@ $(() => {
     };
 
     function timeout() {
-        draw();
         update();
-        setTimeout(function () { timeout() }, 30);
+        draw();
+        setTimeout(() => timeout(), 30);
     };
 
-    function snakeStep() {
-        gameState.headPosition = gameState.headPosition.add(gameState.direction);
-
-        if (gameState.headPosition.x <= 0) {
-            gameState.headPosition.x = TILES_X - 2;
-        }
-        if (gameState.headPosition.y <= 0) {
-            gameState.headPosition.y = TILES_Y - 2;
-        }
-        if (gameState.headPosition.x >= TILES_X - 1) {
-            gameState.headPosition.x = 1;
-        }
-        if (gameState.headPosition.y >= TILES_Y - 1) {
-            gameState.headPosition.y = 1;
-        }
-
-        gameState.snakeTiles.push(gameState.headPosition.clone());
-
-        // Eat the apple.
-        if (gameState.headPosition.equals(gameState.applesPosition)) {
-            gameState.snakeLength += 2;
-            gameState.applesPosition = null;
-        }
-        
-        while (gameState.snakeTiles.length > gameState.snakeLength) {
-            gameState.snakeTiles.splice(0, 1);
+    function update() {
+        if (playbackMode) {
+            updatePlayback();
+        } else {
+            updateLive();
         }
     }
 
     let moveEllapsed = 0;
-    function update() {
+    function updateLive() {
         const ellapsed = performance.now() - lastUpdateTime;
         lastUpdateTime += ellapsed;
 
@@ -201,11 +275,77 @@ $(() => {
         moveEllapsed -= steps;
 
         for (let step = 0; step < steps; ++step) {
-            snakeStep();
+            applyAction(new ActionSnakeStep());
         }
 
-        if (!gameState.applesPosition) {
-            gameState.applesPosition = new Vector(Math.floor(Math.random() * TILES_X), Math.floor(Math.random() * TILES_Y));
+        if (!gameState.applePos) {
+            let newPos;
+            while (true) {
+                newPos = new Vector(Math.floor(Math.random() * TILES_X), Math.floor(Math.random() * TILES_Y));
+                if (newPos.x === 0 || newPos.x >= TILES_X - 1)
+                    continue;
+                if (newPos.y === 0 || newPos.y >= TILES_Y - 1)
+                    continue;
+
+                let collides = false;
+                for (let i = 0; i < gameState.snakeTiles.length; ++i) {
+                    if (gameState.snakeTiles[i].equals(newPos)) {
+                        collides = true;
+                        break;
+                    }
+                }
+                if (collides)
+                    continue;
+
+                break;
+            };
+
+            applyAction(new ActionNewApple(newPos));
+        }
+    }
+
+    function applyAction(action, dontSave) {
+        gameState = action.act(gameState);
+        if (!dontSave) {
+            if (savedActions.length === 0) {
+                actionsStartTime = performance.now();
+            }
+            savedActions.push(action);
+        }
+    }
+
+    function restartLiveMode() {
+        playbackMode = false;
+        lastUpdateTime = performance.now();
+        
+        savedActions = [];
+        actionsStartTime = performance.now();
+        applyAction(new ActionInitState());
+    }
+
+    function resumeLiveMode() {
+        playbackMode = false;
+        lastUpdateTime = performance.now();
+    }
+
+    let currentAction = 0;
+    function enterPlaybackMode() {
+        playbackMode = true;
+        currentAction = 0;
+        actionsStartTime = performance.now();
+    }
+
+    function updatePlayback() {
+        if (currentAction >= savedActions.length) {
+            resumeLiveMode();
+            return;
+        }
+
+        while (savedActions[currentAction] && performance.now() - actionsStartTime >= savedActions[currentAction].actionTime) {
+            applyAction(savedActions[currentAction], true);
+
+            // Move to next action.
+            ++currentAction;
         }
     }
 
@@ -233,7 +373,7 @@ $(() => {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
         // Draw border
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = playbackMode ? 'purple' : 'black';
         ctx.fillRect(
             paddingX, paddingY, 
             tileWidth * TILES_X, tileHeight * TILES_Y);
@@ -242,8 +382,8 @@ $(() => {
             paddingX + tileWidth, paddingY + tileWidth, 
             tileWidth * (TILES_X - 2), tileHeight * (TILES_Y - 2));
 
-        if (gameState.applesPosition) {
-            drawTile(gameState.applesPosition, 'red');
+        if (gameState.applePos) {
+            drawTile(gameState.applePos, 'red');
         }
         gameState.snakeTiles.forEach(tile => {
             drawTile(tile, 'blue');
