@@ -164,6 +164,20 @@ $(() => {
 
     function snakeStep() {
         gameState.headPosition = gameState.headPosition.add(gameState.direction);
+
+        if (gameState.headPosition.x <= 0) {
+            gameState.headPosition.x = TILES_X - 2;
+        }
+        if (gameState.headPosition.y <= 0) {
+            gameState.headPosition.y = TILES_Y - 2;
+        }
+        if (gameState.headPosition.x >= TILES_X - 1) {
+            gameState.headPosition.x = 1;
+        }
+        if (gameState.headPosition.y >= TILES_Y - 1) {
+            gameState.headPosition.y = 1;
+        }
+
         gameState.snakeTiles.push(gameState.headPosition.clone());
 
         // Eat the apple.
@@ -182,7 +196,7 @@ $(() => {
         const ellapsed = performance.now() - lastUpdateTime;
         lastUpdateTime += ellapsed;
 
-        moveEllapsed += ellapsed / 100;
+        moveEllapsed += ellapsed / 60;
         const steps = Math.floor(moveEllapsed);
         moveEllapsed -= steps;
 
@@ -217,6 +231,16 @@ $(() => {
         }
 
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        // Draw border
+        ctx.fillStyle = 'black';
+        ctx.fillRect(
+            paddingX, paddingY, 
+            tileWidth * TILES_X, tileHeight * TILES_Y);
+        ctx.fillStyle = 'green';
+        ctx.fillRect(
+            paddingX + tileWidth, paddingY + tileWidth, 
+            tileWidth * (TILES_X - 2), tileHeight * (TILES_Y - 2));
 
         if (gameState.applesPosition) {
             drawTile(gameState.applesPosition, 'red');
