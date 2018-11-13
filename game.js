@@ -1,118 +1,11 @@
 'use strict';
 
-const TILES_X = 40;
-const TILES_Y = 40;
-
 const Direction = Object.freeze({
     UP: Symbol("UP"),
     DOWN: Symbol("DOWN"),
     LEFT: Symbol("LEFT"),
     RIGHT: Symbol("RIGHT"),
 });
-
-let actionsStartTime;
-
-class ActionBase {
-    constructor() {
-        this.actionTime = performance.now() - actionsStartTime;
-    }
-
-    act(state) {
-        // Do nothing in base
-    }
-}
-
-class ActionInitState extends ActionBase {
-    act(state) {
-        return {
-            applePos: null,
-            snakeTiles: [],
-            snakeLength: 4,
-            headPosition: new Vector(1, 1),
-    
-            dir: Direction.RIGHT,
-        };
-    }
-}
-
-class ActionNewApple extends ActionBase {
-    constructor(position) {
-        super();
-
-        this.position = position;
-    }
-
-    act(state) {
-        return Object.assign({}, state, {
-            applePos: this.position,
-        });
-    }
-}
-
-class ActionChangeDirection extends ActionBase {
-    constructor(newDir) {
-        super();
-
-        this.newDir = newDir;
-    }
-
-    act(state) {
-        return Object.assign({}, state, {
-            dir: this.newDir,
-        });
-    }
-}
-
-class ActionSnakeStep extends ActionBase {
-    act(state) {
-        const gameState = Object.assign({}, state);
-
-        let direction;
-        switch (gameState.dir) {
-            case Direction.UP:
-                direction = new Vector(0, 1);
-            break;
-            case Direction.DOWN: 
-            direction = new Vector(0, -1);
-            break;
-            case Direction.LEFT: 
-            direction = new Vector(-1, 0);
-            break;
-            case Direction.RIGHT: 
-            direction = new Vector(1, 0);
-            break;
-        }
-
-        gameState.headPosition = gameState.headPosition.add(direction);
-
-        if (gameState.headPosition.x <= 0) {
-            gameState.headPosition.x = TILES_X - 2;
-        }
-        if (gameState.headPosition.y <= 0) {
-            gameState.headPosition.y = TILES_Y - 2;
-        }
-        if (gameState.headPosition.x >= TILES_X - 1) {
-            gameState.headPosition.x = 1;
-        }
-        if (gameState.headPosition.y >= TILES_Y - 1) {
-            gameState.headPosition.y = 1;
-        }
-
-        gameState.snakeTiles.push(gameState.headPosition.clone());
-
-        // Eat the apple.
-        if (gameState.headPosition.equals(gameState.applePos)) {
-            gameState.snakeLength += 2;
-            gameState.applePos = null;
-        }
-        
-        while (gameState.snakeTiles.length > gameState.snakeLength) {
-            gameState.snakeTiles.splice(0, 1);
-        }
-
-        return gameState;
-    }
-}
 
 class Vector {
     constructor(vx, y) {
@@ -174,10 +67,117 @@ $(() => {
     let paddingY;
     let tileWidth;
     let tileHeight;
-    let lastUpdateTime;
+    let gameTimeAbsoluteStartTime;
+    let gameTimeEllapsedSteps;
     let gameState;
     let savedActions = [];
     let playbackMode = false;
+
+    class ActionBase {
+        constructor() {
+            this.actionTime = gameTimeEllapsedSteps;
+        }
+    
+        act(state) {
+            // Do nothing in base
+        }
+    }
+    
+    class ActionInitState extends ActionBase {
+        act(state) {
+            return {
+                xTiles: 40,
+                yTiles: 40,
+    
+                applePos: null,
+                snakeTiles: [],
+                snakeLength: 4,
+                headPosition: new Vector(1, 1),
+        
+                dir: Direction.RIGHT,
+            };
+        }
+    }
+    
+    class ActionNewApple extends ActionBase {
+        constructor(position) {
+            super();
+    
+            this.position = position;
+        }
+    
+        act(state) {
+            return Object.assign({}, state, {
+                applePos: this.position,
+            });
+        }
+    }
+    
+    class ActionChangeDirection extends ActionBase {
+        constructor(newDir) {
+            super();
+    
+            this.newDir = newDir;
+        }
+    
+        act(state) {
+            return Object.assign({}, state, {
+                dir: this.newDir,
+            });
+        }
+    }
+    
+    class ActionSnakeStep extends ActionBase {
+        act(state) {
+            const gameState = Object.assign({}, state);
+
+            let direction;
+            switch (gameState.dir) {
+                case Direction.UP:
+                    direction = new Vector(0, 1);
+                    break;
+                case Direction.DOWN: 
+                    direction = new Vector(0, -1);
+                    break;
+                case Direction.LEFT: 
+                    direction = new Vector(-1, 0);
+                    break;
+                case Direction.RIGHT: 
+                    direction = new Vector(1, 0);
+                    break;
+            }
+        
+            gameState.headPosition = gameState.headPosition.add(direction);
+        
+            if (gameState.headPosition.x <= 0) {
+                gameState.headPosition.x = gameState.xTiles - 2;
+            }
+            if (gameState.headPosition.y <= 0) {
+                gameState.headPosition.y = gameState.yTiles - 2;
+            }
+            if (gameState.headPosition.x >= gameState.xTiles - 1) {
+                gameState.headPosition.x = 1;
+            }
+            if (gameState.headPosition.y >= gameState.yTiles - 1) {
+                gameState.headPosition.y = 1;
+            }
+        
+            gameState.snakeTiles.push(gameState.headPosition.clone());
+        
+            // Eat the apple.
+            if (gameState.headPosition.equals(gameState.applePos)) {
+                gameState.applePos = null;
+                gameState.snakeLength += 2;
+            }
+            
+            while (gameState.snakeTiles.length > gameState.snakeLength) {
+                gameState.snakeTiles.splice(0, 1);
+            }
+        
+            return gameState;
+        }
+    }
+
 
     function init() {
         restartLiveMode();
@@ -195,7 +195,7 @@ $(() => {
             return; // Do nothing if the event was already processed
         }
         
-        if (event.key === "P") {
+        if (event.key === 'P' || event.key === 'p') {
             enterPlaybackMode();
         } else {
             let newDirection;
@@ -246,8 +246,8 @@ $(() => {
             canvasHeight = canvasWidth;
         }
 
-        tileWidth = canvasWidth / TILES_X;
-        tileHeight = canvasHeight / TILES_Y;
+        tileWidth = canvasWidth / gameState.xTiles;
+        tileHeight = canvasHeight / gameState.yTiles;
         draw();
     };
 
@@ -258,33 +258,27 @@ $(() => {
     };
 
     function update() {
-        if (playbackMode) {
-            updatePlayback();
-        } else {
-            updateLive();
+        const newEllapsed = Math.floor((performance.now() - gameTimeAbsoluteStartTime) / 60);
+        
+        for (;gameTimeEllapsedSteps < newEllapsed; ++gameTimeEllapsedSteps) {
+            if (playbackMode) {
+                stepPlayback();
+            } else {
+                stepLive();
+            }
         }
     }
 
-    let moveEllapsed = 0;
-    function updateLive() {
-        const ellapsed = performance.now() - lastUpdateTime;
-        lastUpdateTime += ellapsed;
-
-        moveEllapsed += ellapsed / 60;
-        const steps = Math.floor(moveEllapsed);
-        moveEllapsed -= steps;
-
-        for (let step = 0; step < steps; ++step) {
-            applyAction(new ActionSnakeStep());
-        }
+    function stepLive() {
+        applyAction(new ActionSnakeStep());
 
         if (!gameState.applePos) {
             let newPos;
             while (true) {
-                newPos = new Vector(Math.floor(Math.random() * TILES_X), Math.floor(Math.random() * TILES_Y));
-                if (newPos.x === 0 || newPos.x >= TILES_X - 1)
+                newPos = new Vector(Math.floor(Math.random() * gameState.xTiles), Math.floor(Math.random() * gameState.yTiles));
+                if (newPos.x === 0 || newPos.x >= gameState.xTiles - 1)
                     continue;
-                if (newPos.y === 0 || newPos.y >= TILES_Y - 1)
+                if (newPos.y === 0 || newPos.y >= gameState.yTiles - 1)
                     continue;
 
                 let collides = false;
@@ -307,46 +301,47 @@ $(() => {
     function applyAction(action, dontSave) {
         gameState = action.act(gameState);
         if (!dontSave) {
-            if (savedActions.length === 0) {
-                actionsStartTime = performance.now();
-            }
             savedActions.push(action);
         }
     }
 
     function restartLiveMode() {
         playbackMode = false;
-        lastUpdateTime = performance.now();
         
         savedActions = [];
-        actionsStartTime = performance.now();
+        gameTimeAbsoluteStartTime = performance.now();
+        gameTimeEllapsedSteps = 0;
         applyAction(new ActionInitState());
     }
 
     function resumeLiveMode() {
         playbackMode = false;
-        lastUpdateTime = performance.now();
     }
 
     let currentAction = 0;
     function enterPlaybackMode() {
         playbackMode = true;
         currentAction = 0;
-        actionsStartTime = performance.now();
+        gameTimeAbsoluteStartTime = performance.now();
+        gameTimeEllapsedSteps = 0;
     }
 
-    function updatePlayback() {
-        if (currentAction >= savedActions.length) {
-            resumeLiveMode();
-            return;
-        }
+    function stepPlayback() {
+        do {
+            if (currentAction >= savedActions.length) {
+                resumeLiveMode();
+                return;
+            }
 
-        while (savedActions[currentAction] && performance.now() - actionsStartTime >= savedActions[currentAction].actionTime) {
-            applyAction(savedActions[currentAction], true);
+            const action = savedActions[currentAction];
+            if (action.actionTime < gameTimeEllapsedSteps) {
+                applyAction(action, true);
+            } else {
+                break;
+            }
 
-            // Move to next action.
             ++currentAction;
-        }
+        } while (true);
     }
 
     function draw() {
@@ -376,11 +371,11 @@ $(() => {
         ctx.fillStyle = playbackMode ? 'purple' : 'black';
         ctx.fillRect(
             paddingX, paddingY, 
-            tileWidth * TILES_X, tileHeight * TILES_Y);
+            tileWidth * gameState.xTiles, tileHeight * gameState.yTiles);
         ctx.fillStyle = 'green';
         ctx.fillRect(
             paddingX + tileWidth, paddingY + tileWidth, 
-            tileWidth * (TILES_X - 2), tileHeight * (TILES_Y - 2));
+            tileWidth * (gameState.xTiles - 2), tileHeight * (gameState.yTiles - 2));
 
         if (gameState.applePos) {
             drawTile(gameState.applePos, 'red');
