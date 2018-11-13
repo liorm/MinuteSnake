@@ -74,8 +74,9 @@ $(() => {
     let playbackMode = false;
 
     class ActionBase {
-        constructor() {
+        constructor(options) {
             this.actionTime = gameTimeEllapsedSteps;
+            this.options = options;
         }
     
         act(state) {
@@ -101,28 +102,28 @@ $(() => {
     
     class ActionNewApple extends ActionBase {
         constructor(position) {
-            super();
-    
-            this.position = position;
+            super({
+                position: position
+            });
         }
     
         act(state) {
             return Object.assign({}, state, {
-                applePos: this.position,
+                applePos: this.options.position,
             });
         }
     }
     
     class ActionChangeDirection extends ActionBase {
         constructor(newDir) {
-            super();
-    
-            this.newDir = newDir;
+            super({
+                newDir: newDir
+            });
         }
     
         act(state) {
             return Object.assign({}, state, {
-                dir: this.newDir,
+                dir: this.options.newDir,
             });
         }
     }
@@ -301,7 +302,23 @@ $(() => {
     function applyAction(action, dontSave) {
         gameState = action.act(gameState);
         if (!dontSave) {
-            savedActions.push(action);
+            if (savedActions.length > 0) {
+                const lastPair = savedActions[savedActions.length - 1];
+                const lastAction = lastPair.action;
+                if ( 
+                    (lastAction.constructor === action.constructor) && 
+                    _.isEqual(lastAction.options, action.options) &&
+                    lastAction.actionTime + 1 * lastPair.repeat === action.actionTime
+                ) {
+                    lastPair.repeat += 1;
+                    return;
+                }
+            }
+
+            savedActions.push({
+                action: action,
+                repeat: 1,
+            });
         }
     }
 
@@ -326,21 +343,26 @@ $(() => {
         gameTimeEllapsedSteps = 0;
     }
 
+    let playbackLastActionRepeat = 0;
     function stepPlayback() {
         do {
             if (currentAction >= savedActions.length) {
                 resumeLiveMode();
                 return;
             }
-
-            const action = savedActions[currentAction];
-            if (action.actionTime < gameTimeEllapsedSteps) {
-                applyAction(action, true);
+            
+            const actionPair = savedActions[currentAction];
+            if (actionPair.action.actionTime + playbackLastActionRepeat < gameTimeEllapsedSteps) {
+                if (playbackLastActionRepeat < actionPair.repeat) {
+                    applyAction(actionPair.action, true);
+                    ++playbackLastActionRepeat;
+                } else {
+                    ++currentAction;
+                    playbackLastActionRepeat = 0;
+                }
             } else {
-                break;
+                return;
             }
-
-            ++currentAction;
         } while (true);
     }
 
