@@ -1,11 +1,9 @@
-'use strict';
-
-const Direction = Object.freeze({
-    UP: Symbol("UP"),
-    DOWN: Symbol("DOWN"),
-    LEFT: Symbol("LEFT"),
-    RIGHT: Symbol("RIGHT"),
-});
+enum Direction {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+}
 
 class Vector {
     constructor(vx, y) {
@@ -72,6 +70,39 @@ $(() => {
     let gameState;
     let savedActions = [];
     let playbackMode = false;
+
+    class GameState {
+        constructor(seed) {
+            this._resetState(seed);
+        }
+
+        _resetState(seed) {
+            seed = seed || new Date().valueOf();
+
+            this.prng = new Math.seedrandom(seed);
+            this.state = {
+                xTiles: 40,
+                yTiles: 40,
+                seed: seed,
+    
+                applePos: null,
+                snakeTiles: [],
+                snakeLength: 4,
+                headPosition: new Vector(1, 1),
+        
+                dir: Direction.RIGHT,
+            };
+        }
+
+        _applyInput(input) {
+
+        }
+
+
+        input(input) {
+            const inputTime = performance.now();
+        }
+    }
 
     class ActionBase {
         constructor(options) {
@@ -368,7 +399,7 @@ $(() => {
 
     function draw() {
         if (!ctx) {
-            var tmpCanvas = canvas.get(0);
+            const tmpCanvas = canvas.get(0);
             if (tmpCanvas.getContext == null) {
                 return;
             };
