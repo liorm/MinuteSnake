@@ -41,7 +41,7 @@ export interface IGameInputSpeed {
 
 export type GameInput = IGameInputDirection | IGameInputSpeed;
 
-export class GameState {
+export class GameLogic {
     private _prng: seedrandom.prng;
     private _state: IGameState;
     private _pendingDuration: number;
@@ -238,7 +238,7 @@ export class GameRenderer {
 
     render(
         ctx: CanvasRenderingContext2D,
-        gameState: GameState,
+        gameState: GameLogic,
         playbackMode: boolean
     ) {
         // Draw border

@@ -1,60 +1,72 @@
-import * as $ from 'jquery';
-import {EDirection, GameInput, GameRenderer, GameState, IGameOptions} from './game-state';
+import {
+    EDirection,
+    GameInput,
+    GameRenderer,
+    GameLogic,
+    IGameOptions
+} from './game-logic';
 
 interface IGameInputTime {
     gameInput: GameInput;
     inputTime: number;
 }
 
-$(() => {
-    const canvas = $("#canvas");
-    let ctx: CanvasRenderingContext2D;
-    let renderer: GameRenderer;
+export class GameEngine {
+    gameOptions: IGameOptions;
+    renderer: GameRenderer;
 
-    let absoluteStartTime: number;
-    let playedDuration: number;
-    let gameOptions: IGameOptions;
-    let gameState: GameState;
-    let savedInputs: IGameInputTime[];
-    let playbackMode = false;
-    let playbackInputIndex = 0;
+    absoluteStartTime: number;
+    playedDuration: number;
+    gameState: GameLogic;
+    savedInputs: IGameInputTime[];
+    playbackMode = false;
+    playbackInputIndex = 0;
 
-    function init() {
-        gameOptions = {
-            xTiles: 100,
-            yTiles: 100,
+    constructor(
+        private wnd: JQuery<Window>,
+        private canvas: JQuery<HTMLCanvasElement>,
+        private ctx: CanvasRenderingContext2D
+    ) {
+
+    }
+
+    start() {
+        this.gameOptions = {
+            xTiles: 60,
+            yTiles: 60,
             seed: new Date().valueOf()
         };
-        renderer = new GameRenderer(gameOptions);
+        this.renderer = new GameRenderer(this.gameOptions);
 
-        restartLiveMode();
-        updateCanvasDimensions();
-        initEventListeners();
-        timeout();
+        this.restartLiveMode();
+        this.initEventListeners();
+        this.updateCanvasDimensions();
+        this.timeout();
     }
 
-    function initEventListeners() {
-        $(window).on('resize', updateCanvasDimensions).on('keydown', onKeyDown);
+    initEventListeners() {
+        this.wnd.on('resize', () => this.updateCanvasDimensions()).on('keydown', (e) => this.onKeyDown(e));
     }
-    function onKeyDown(event) {
+
+    onKeyDown(event) {
         if (event.defaultPrevented) {
             return; // Do nothing if the event was already processed
         }
 
         // Can't process actions while in playback mode.
-        if (playbackMode) {
+        if (this.playbackMode) {
             return;
         }
-        
+
         if (event.key === 'P' || event.key === 'p') {
-            enterPlaybackMode();
+            this.enterPlaybackMode();
         } else if ( event.key ==='+' ) {
-            recordInput({
+            this.recordInput({
                 inputType: 'speed',
                 speedIncrement: 1,
             });
         } else if ( event.key ==='-' ) {
-            recordInput({
+            this.recordInput({
                 inputType: 'speed',
                 speedIncrement: -1,
             });
@@ -78,7 +90,7 @@ $(() => {
                     return;
             }
 
-            recordInput({
+            this.recordInput({
                 inputType: 'direction',
                 dir: newDirection
             });
@@ -87,100 +99,91 @@ $(() => {
         event.preventDefault();
     }
 
-    function updateCanvasDimensions() {
-        canvas.attr({
-            height: $(window).height(),
-            width: $(window).width()
+    updateCanvasDimensions() {
+        this.canvas.attr({
+            height: this.wnd.height(),
+            width: this.wnd.width()
         });
 
-        renderer.onCanvasSizeChanged(canvas.width()!, canvas.height()!);
-        draw();
-    }
-    function timeout() {
-        update();
-        draw();
-        setTimeout(() => timeout(), 30);
-    }
-    function update() {
-        const now = performance.now();
-        advanceTime(now);
+        this.renderer.onCanvasSizeChanged(this.canvas.width()!, this.canvas.height()!);
+        this.draw();
     }
 
-    function recordInput(input: GameInput) {
+    timeout() {
+        this.update();
+        this.draw();
+        setTimeout(() => this.timeout(), 30);
+    }
+
+    update() {
         const now = performance.now();
-        advanceTime(now);
-        gameState.input(input);
-        savedInputs.push({
+        this.advanceTime(now);
+    }
+
+    recordInput(input: GameInput) {
+        const now = performance.now();
+        this.advanceTime(now);
+        this.gameState.input(input);
+        this.savedInputs.push({
             gameInput: input,
-            inputTime: playedDuration
+            inputTime: this.playedDuration
         });
     }
 
-    function advanceTime(now) {
+    advanceTime(now) {
         do {
-            let newPlayedDuration = (now - absoluteStartTime);
-            if (newPlayedDuration <= playedDuration) {
+            let newPlayedDuration = (now - this.absoluteStartTime);
+            if (newPlayedDuration <= this.playedDuration) {
                 return;
             }
 
-            if (playbackMode) {
-                if (playbackInputIndex >= savedInputs.length) {
-                    resumeLiveMode();
+            if (this.playbackMode) {
+                if (this.playbackInputIndex >= this.savedInputs.length) {
+                    this.resumeLiveMode();
                 } else {
                     // For playback mode, advance until the next input time.
-                    const nextInput = savedInputs[playbackInputIndex];
+                    const nextInput = this.savedInputs[this.playbackInputIndex];
                     if (newPlayedDuration >= nextInput.inputTime) {
                         newPlayedDuration = nextInput.inputTime;
                     }
                 }
             }
 
-            gameState.advanceTime(newPlayedDuration - playedDuration);
-            playedDuration = newPlayedDuration;
+            this.gameState.advanceTime(newPlayedDuration - this.playedDuration);
+            this.playedDuration = newPlayedDuration;
 
-            if (playbackMode) {
-                const nextInput = savedInputs[playbackInputIndex];
-                if (playedDuration === nextInput.inputTime) {
-                    gameState.input(nextInput.gameInput);
-                    ++playbackInputIndex;
+            if (this.playbackMode) {
+                const nextInput = this.savedInputs[this.playbackInputIndex];
+                if (this.playedDuration === nextInput.inputTime) {
+                    this.gameState.input(nextInput.gameInput);
+                    ++this.playbackInputIndex;
                 }
             }
         } while (true);
     }
 
-    function restartLiveMode() {
-        playbackMode = false;
-        savedInputs = [];
-        gameState = new GameState(gameOptions);
-        absoluteStartTime = performance.now();
-        playedDuration = 0;
+    restartLiveMode() {
+        this.playbackMode = false;
+        this.savedInputs = [];
+        this.gameState = new GameLogic(this.gameOptions);
+        this.absoluteStartTime = performance.now();
+        this.playedDuration = 0;
     }
 
-    function resumeLiveMode() {
-        playbackMode = false;
+    resumeLiveMode() {
+        this.playbackMode = false;
     }
 
-    function enterPlaybackMode() {
-        playbackMode = true;
-        playbackInputIndex = 0;
-        gameState = new GameState(gameOptions);
-        absoluteStartTime = performance.now();
-        playedDuration = 0;
+    enterPlaybackMode() {
+        this.playbackMode = true;
+        this.playbackInputIndex = 0;
+        this.gameState = new GameLogic(this.gameOptions);
+        this.absoluteStartTime = performance.now();
+        this.playedDuration = 0;
     }
 
-    function draw() {
-        if (!ctx) {
-            const tmpCanvas = canvas.get(0) as HTMLCanvasElement;
-            if (tmpCanvas.getContext == null) {
-                return;
-            }
-            ctx = tmpCanvas.getContext('2d')!;
-        }
-
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-        renderer.render(ctx, gameState, playbackMode);
+    draw() {
+        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+        this.renderer.render(this.ctx, this.gameState, this.playbackMode);
     }
-
-    init();
-});
+}

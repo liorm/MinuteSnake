@@ -1,14 +1,28 @@
-declare var require: (deps: string[]) => void;
-declare var requirejs;
+import {GameEngine} from "./game-engine";
+import * as $ from 'jquery';
 
-requirejs.config({
-    appDir: ".",
-    baseUrl: "js",
-    paths: { 
-        'jquery': ['//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min'],
-        'seedrandom': ['//cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.4/seedrandom.min'],
-        'lodash': ['//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.core.min']
+// Start game engine
+$(() => {
+    const canvas: JQuery<HTMLCanvasElement> = $("#canvas");
+    const wnd = $(window);
+    let gameEngine: GameEngine;
+
+    function tryCreateGameEngine() {
+        if (gameEngine) {
+            return;
+        }
+
+        const tmpCanvas = canvas.get(0);
+        if (tmpCanvas.getContext != null) {
+            const ctx = tmpCanvas.getContext('2d')!;
+            gameEngine = new GameEngine(wnd, canvas, ctx);
+            gameEngine.start();
+            return;
+        }
+
+        // Retry
+        setTimeout(tryCreateGameEngine, 100);
     }
-});
 
-require(['game-engine']);
+    tryCreateGameEngine();
+});
