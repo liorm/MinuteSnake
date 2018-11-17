@@ -233,27 +233,29 @@ export class GameEngine {
     }
 
     private _restartLiveMode() {
+        const x = 60, y = 40;
         const gameStage = {
-            xTiles: 60,
-            yTiles: 60,
+            xTiles: x,
+            yTiles: y,
             seed: new Date().valueOf(),
             wallHoles: [
-                new Vector(0, 11),
-                new Vector(0, 10),
-                new Vector(59, 11),
-                new Vector(59, 10),
+                new Vector(0, y / 2),
+                new Vector(0, y / 2 + 1),
+                new Vector(x - 1, y / 2),
+                new Vector(x - 1, y / 2 + 1),
             ],
             blocks: [
-                new Vector(30, 30),
-                new Vector(30, 31),
-                new Vector(31, 31),
-                new Vector(31, 30),
+                new Vector(x / 2, y / 2),
+                new Vector(x / 2 - 1, y / 2 - 1),
+                new Vector(x / 2, y / 2 - 1),
+                new Vector(x / 2 - 1, y / 2),
             ]
         };
 
         this._isPlaybackMode = false;
         this._handler = new LiveHandler(gameStage);
         this._lastEngineTime = performance.now();
+        this._gameRenderer.initRenderer(this._handler.gameStage);
     }
 
     private _resumeLiveMode() {
@@ -271,7 +273,6 @@ export class GameEngine {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this._gameRenderer.render(
             this.ctx,
-            this._handler.gameStage,
             this._handler.state,
             this._isPlaybackMode
         );

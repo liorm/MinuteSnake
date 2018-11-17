@@ -272,25 +272,26 @@ export class GameRenderer {
     private _tileHeight: number;
     private _canvasHeight: number;
     private _canvasWidth: number;
+    private _gameOptions: IGameOptions;
 
     constructor() {
     }
 
-    onCanvasSizeChanged(w: number, h: number) {
-        this._paddingX = 0;
-        this._paddingY = 0;
-        this._canvasWidth = w;
-        this._canvasHeight = h;
+    initRenderer(gameOptions: IGameOptions) {
+        this._gameOptions = gameOptions;
+    }
 
-        if (this._canvasWidth > this._canvasHeight) {
-            this._paddingX = (this._canvasWidth - this._canvasHeight) / 2;
-            // noinspection JSSuspiciousNameCombination
-            this._canvasWidth = this._canvasHeight;
-        } else {
-            this._paddingY = (this._canvasHeight - this._canvasWidth) / 2;
-            // noinspection JSSuspiciousNameCombination
-            this._canvasHeight = this._canvasWidth;
-        }
+    onCanvasSizeChanged(w: number, h: number) {
+        const tileLength = Math.min( w/this._gameOptions.xTiles, h/this._gameOptions.yTiles);
+
+        this._tileWidth = tileLength;
+        this._tileHeight = tileLength;
+
+        this._canvasWidth = this._gameOptions.xTiles * this._tileWidth;
+        this._canvasHeight = this._gameOptions.yTiles * this._tileHeight;
+
+        this._paddingX = (w - this._canvasWidth) / 2;
+        this._paddingY = (h - this._canvasHeight) / 2;
     }
 
     private _drawTile(ctx, v, tileStyle) {
@@ -307,17 +308,13 @@ export class GameRenderer {
 
     render(
         ctx: CanvasRenderingContext2D,
-        options: IGameOptions,
         gameState: IGameState,
         playbackMode: boolean
     ) {
-        this._tileWidth = this._canvasWidth / options.xTiles;
-        this._tileHeight = this._canvasHeight / options.yTiles;
-
         ctx.fillStyle = 'green';
         ctx.fillRect(
             this._paddingX, this._paddingY,
-            this._tileWidth * options.xTiles, this._tileHeight * options.yTiles);
+            this._tileWidth * this._gameOptions.xTiles, this._tileHeight * this._gameOptions.yTiles);
 
         // Draw blocks.
         gameState.blocks.forEach(block => {
