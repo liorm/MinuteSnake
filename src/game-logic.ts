@@ -157,20 +157,21 @@ export class GameLogic {
         this._state.applePos = newPos;
     }
 
-    private _actionNewDir(newDir: EDirection) {
+    private _actionNewDir(newDir: EDirection): boolean {
         if (this._state.dir === newDir) {
-            return;
+            return false;
         }
 
         if (this._state.dir + newDir === 0) {
-            return;
+            return false;
         }
 
         this._state.dir = newDir;
         this._actionStep();
+        return true;
     }
 
-    private _actionSpeedChange(speedIncrement: number) {
+    private _actionSpeedChange(speedIncrement: number): boolean {
         let newSpeed = this._state.speed += speedIncrement;
         if (newSpeed <= 1) {
             newSpeed = 1;
@@ -180,23 +181,26 @@ export class GameLogic {
         }
 
         this._state.speed = newSpeed;
+        return true;
     }
 
     input(input: GameInput) {
+        let handled = false;
         switch (input.inputType) {
             case 'direction':
-                this._actionNewDir(input.dir);
+                handled = this._actionNewDir(input.dir);
                 break;
             case 'speed':
-                this._actionSpeedChange(input.speedIncrement);
+                handled = this._actionSpeedChange(input.speedIncrement);
                 break;
             default: 
                 return assertNever(input); // error here if there are missing cases
         }
 
-        if (this._onInputCallback) {
+        // Broadcast only handled inputs
+        if (this._onInputCallback && handled) {
             this._onInputCallback({
-               eventTime: this._totalDuration,
+                eventTime: this._totalDuration,
                 gameInput: input
             });
         }
