@@ -40,6 +40,8 @@ export interface IGameState {
     headPosition: Vector;
 
     dir: EDirection;
+
+    gameOver: boolean;
 }
 
 export interface IGameInputDirection {
@@ -102,10 +104,15 @@ export class GameLogic {
             headPosition: new Vector(1, 1),
     
             dir: EDirection.RIGHT,
+
+            gameOver: false,
         };
     }
 
     private _actionStep(): boolean {
+        if (this._state.gameOver)
+            return false;
+
         let direction;
         switch (this._state.dir) {
             case EDirection.UP:
@@ -121,18 +128,18 @@ export class GameLogic {
                 direction = new Vector(1, 0);
                 break;
         }
-    
+
         let newPosition = this._state.headPosition.add(direction);
 
         // Check if we hit the blocks?
         if (this._state.blocks.find(v => v.equals(newPosition))) {
-            // TODO: Implement death logic.
+            this._state.gameOver = true;
             return false;
         }
 
         // Check if we hit the snake?
         if (this._state.snakeTiles.find(v => v.equals(newPosition))) {
-            // TODO: Implement death logic.
+            this._state.gameOver = true;
             return false;
         }
 
@@ -339,6 +346,15 @@ export class GameRenderer {
             ctx.closePath();
             ctx.fillStyle = '#50FF50';
             ctx.fill();
+        }
+
+        if (gameState.gameOver) {
+            ctx.font="70px Georgia";
+            ctx.fillStyle = 'black';
+            ctx.strokeStyle = 'white';
+            const measurement = ctx.measureText("Game Over!");
+            ctx.fillText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - 70) / 2);
+            ctx.strokeText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - 70) / 2);
         }
     }
 }
