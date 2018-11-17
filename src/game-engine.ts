@@ -3,11 +3,12 @@ import {
     GameInput,
     GameRenderer,
     GameLogic,
-    IGameOptions, IGameEventInput, IGameState
+    IGameOptions, IGameEventInput, IGameState, IGameStage
 } from './game-logic';
+import {Vector} from "./utils";
 
 abstract class GameHandlerBase {
-    abstract get gameOptions(): IGameOptions;
+    abstract get gameStage(): IGameStage;
     abstract get state(): IGameState;
     abstract get savedInputs(): IGameEventInput[];
     abstract get isDone(): boolean;
@@ -19,14 +20,16 @@ class LiveHandler extends GameHandlerBase {
     private _gameLogic: GameLogic;
     savedInputs: IGameEventInput[];
 
+    get gameStage(): IGameStage { return this._gameStage; }
+
     constructor(
-        public gameOptions: IGameOptions,
+        private _gameStage: IGameStage,
         savedInputs?: IGameEventInput[],
     ) {
         super();
 
         this.savedInputs = savedInputs || [];
-        this._gameLogic = new GameLogic(this.gameOptions);
+        this._gameLogic = new GameLogic(this._gameStage);
 
         // FF time.
         if (this.savedInputs.length > 0) {
@@ -63,13 +66,15 @@ class PlaybackHandler extends GameHandlerBase {
     private _gameLogic: GameLogic;
     private _inputIndex: number;
 
+    get gameStage(): IGameStage { return this._gameStage; }
+
     constructor(
-        public gameOptions: IGameOptions,
+        private _gameStage: IGameStage,
         public savedInputs: IGameEventInput[],
     ) {
         super();
 
-        this._gameLogic = new GameLogic(this.gameOptions);
+        this._gameLogic = new GameLogic(this._gameStage);
         this._inputIndex = 0;
     }
 
@@ -228,24 +233,30 @@ export class GameEngine {
     }
 
     private _restartLiveMode() {
-        const gameOptions = {
+        const gameStage = {
             xTiles: 60,
             yTiles: 60,
-            seed: new Date().valueOf()
+            seed: new Date().valueOf(),
+            wallHoles: [
+                new Vector(0, 0),
+                new Vector(0, 10),
+            ],
+            blocks: []
         };
+
         this._isPlaybackMode = false;
-        this._handler = new LiveHandler(gameOptions);
+        this._handler = new LiveHandler(gameStage);
         this._lastEngineTime = performance.now();
     }
 
     private _resumeLiveMode() {
         this._isPlaybackMode = false;
-        this._handler = new LiveHandler(this._handler.gameOptions, this._handler.savedInputs);
+        this._handler = new LiveHandler(this._handler.gameStage, this._handler.savedInputs);
     }
 
     private _enterPlaybackMode() {
         this._isPlaybackMode = true;
-        this._handler = new PlaybackHandler(this._handler.gameOptions, this._handler.savedInputs);
+        this._handler = new PlaybackHandler(this._handler.gameStage, this._handler.savedInputs);
         this._lastEngineTime = performance.now();
     }
 
@@ -253,7 +264,7 @@ export class GameEngine {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this._gameRenderer.render(
             this.ctx,
-            this._handler.gameOptions,
+            this._handler.gameStage,
             this._handler.state,
             this._isPlaybackMode
         );

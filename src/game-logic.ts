@@ -24,7 +24,14 @@ export interface IGameOptions {
     seed: number;
 }
 
+export interface IGameStage extends IGameOptions {
+    wallHoles: Vector[];
+    blocks: Vector[];
+}
+
 export interface IGameState {
+    blocks: Vector[];
+
     speed: number;
 
     applePos: Vector | null;
@@ -52,27 +59,37 @@ export class GameLogic {
     private _state: IGameState;
     private _pendingDuration: number;
     private _totalDuration: number;
-    private _onInputCallback: (event: IGameEventInput) => void;
+    onInputCallback: (event: IGameEventInput) => void;
 
+    get options(): IGameOptions { return this._stage; }
     get state(): IGameState { return this._state; }
     get totalDuration(): number { return this._totalDuration; }
 
-    get onInputCallback(): (event: IGameEventInput) => void {
-        return this._onInputCallback;
-    }
-    set onInputCallback(value: (event: IGameEventInput) => void) {
-        this._onInputCallback = value;
-    }
-
-    constructor(public options: IGameOptions) {
+    constructor(private _stage: IGameStage) {
         this._resetState();
     }
 
     private _resetState() {
+        const blocks: Vector[] = [];
+        for (let x = 0; x < this._stage.xTiles; ++x) {
+            blocks.push(
+                new Vector(x, 0),
+                new Vector(x, this._stage.yTiles - 1)
+            );
+        }
+        for (let y = 1; y < this._stage.yTiles; ++y) {
+            blocks.push(
+                new Vector(0, y),
+                new Vector(this._stage.xTiles - 1, y)
+            );
+        }
+
         this._pendingDuration = 0;
         this._totalDuration = 0;
         this._prng = seedrandom(`${this.options.seed}\0`, {global: false});
         this._state = {
+            blocks: blocks,
+
             speed: 12,
 
             applePos: null,
@@ -198,8 +215,8 @@ export class GameLogic {
         }
 
         // Broadcast only handled inputs
-        if (this._onInputCallback && handled) {
-            this._onInputCallback({
+        if (this.onInputCallback && handled) {
+            this.onInputCallback({
                 eventTime: this._totalDuration,
                 gameInput: input
             });
@@ -271,15 +288,16 @@ export class GameRenderer {
         this._tileWidth = this._canvasWidth / options.xTiles;
         this._tileHeight = this._canvasHeight / options.yTiles;
 
-        // Draw border
-        ctx.fillStyle = playbackMode ? 'purple' : 'black';
-        ctx.fillRect(
-            this._paddingX, this._paddingY,
-            this._tileWidth * options.xTiles, this._tileHeight * options.yTiles);
+
         ctx.fillStyle = 'green';
         ctx.fillRect(
-            this._paddingX + this._tileWidth, this._paddingY + this._tileWidth,
-            this._tileWidth * (options.xTiles - 2), this._tileHeight * (options.yTiles - 2));
+            this._paddingX, this._paddingY,
+            this._tileWidth * (options.xTiles - 1), this._tileHeight * (options.yTiles - 1));
+
+        // Draw blocks.
+        gameState.blocks.forEach(block => {
+            this._drawTile(ctx, block, playbackMode ? 'purple' : 'black');
+        });
 
         if (gameState.applePos) {
             this._drawTile(ctx, gameState.applePos, 'red');
