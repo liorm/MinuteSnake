@@ -5,6 +5,12 @@ function assertNever(x: never): never {
     throw new Error("Unexpected object: " + x);
 }
 
+
+export interface IGameEventInput {
+    eventTime: number;
+    gameInput: GameInput;
+}
+
 export enum EDirection {
     UP = 1,
     RIGHT = 2,
@@ -45,8 +51,18 @@ export class GameLogic {
     private _prng: seedrandom.prng;
     private _state: IGameState;
     private _pendingDuration: number;
+    private _totalDuration: number;
+    private _onInputCallback: (event: IGameEventInput) => void;
 
     get state(): IGameState { return this._state; }
+    get totalDuration(): number { return this._totalDuration; }
+
+    get onInputCallback(): (event: IGameEventInput) => void {
+        return this._onInputCallback;
+    }
+    set onInputCallback(value: (event: IGameEventInput) => void) {
+        this._onInputCallback = value;
+    }
 
     constructor(public options: IGameOptions) {
         this._resetState();
@@ -54,6 +70,7 @@ export class GameLogic {
 
     private _resetState() {
         this._pendingDuration = 0;
+        this._totalDuration = 0;
         this._prng = seedrandom(`${this.options.seed}\0`, {global: false});
         this._state = {
             speed: 12,
@@ -176,9 +193,18 @@ export class GameLogic {
             default: 
                 return assertNever(input); // error here if there are missing cases
         }
+
+        if (this._onInputCallback) {
+            this._onInputCallback({
+               eventTime: this._totalDuration,
+                gameInput: input
+            });
+        }
     }
 
     advanceTime(duration: number) {
+        this._totalDuration += duration;
+
         // Advance time.
         this._pendingDuration += duration;
 
@@ -200,8 +226,7 @@ export class GameRenderer {
     private _canvasHeight: number;
     private _canvasWidth: number;
 
-    constructor(private _options: IGameOptions) {
-
+    constructor() {
     }
 
     onCanvasSizeChanged(w: number, h: number) {
@@ -219,9 +244,6 @@ export class GameRenderer {
             // noinspection JSSuspiciousNameCombination
             this._canvasHeight = this._canvasWidth;
         }
-
-        this._tileWidth = this._canvasWidth / this._options.xTiles;
-        this._tileHeight = this._canvasHeight / this._options.yTiles;
     }
 
     private _drawTile(ctx, v, tileStyle) {
@@ -238,23 +260,27 @@ export class GameRenderer {
 
     render(
         ctx: CanvasRenderingContext2D,
-        gameState: GameLogic,
+        options: IGameOptions,
+        gameState: IGameState,
         playbackMode: boolean
     ) {
+        this._tileWidth = this._canvasWidth / options.xTiles;
+        this._tileHeight = this._canvasHeight / options.yTiles;
+
         // Draw border
         ctx.fillStyle = playbackMode ? 'purple' : 'black';
         ctx.fillRect(
             this._paddingX, this._paddingY,
-            this._tileWidth * gameState.options.xTiles, this._tileHeight * gameState.options.yTiles);
+            this._tileWidth * options.xTiles, this._tileHeight * options.yTiles);
         ctx.fillStyle = 'green';
         ctx.fillRect(
             this._paddingX + this._tileWidth, this._paddingY + this._tileWidth,
-            this._tileWidth * (gameState.options.xTiles - 2), this._tileHeight * (gameState.options.yTiles - 2));
+            this._tileWidth * (options.xTiles - 2), this._tileHeight * (options.yTiles - 2));
 
-        if (gameState.state.applePos) {
-            this._drawTile(ctx, gameState.state.applePos, 'red');
+        if (gameState.applePos) {
+            this._drawTile(ctx, gameState.applePos, 'red');
         }
-        gameState.state.snakeTiles.forEach(tile => {
+        gameState.snakeTiles.forEach(tile => {
             this._drawTile(ctx, tile, 'blue');
         });
     }
