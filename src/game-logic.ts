@@ -173,20 +173,16 @@ export class GameLogic {
         let newPos;
         while (true) {
             newPos = new Vector(Math.floor(this._prng() * this.options.xTiles), Math.floor(this._prng() * this.options.yTiles));
-            if (newPos.x === 0 || newPos.x >= this.options.xTiles - 1)
-                continue;
-            if (newPos.y === 0 || newPos.y >= this.options.yTiles - 1)
-                continue;
 
-            let collides = false;
-            for (let i = 0; i < this._state.snakeTiles.length; ++i) {
-                if (this._state.snakeTiles[i].equals(newPos)) {
-                    collides = true;
-                    break;
-                }
-            }
-            if (collides)
+            // Check if we hit the blocks?
+            if (this._state.blocks.find(v => v.equals(newPos))) {
                 continue;
+            }
+
+            // Check if we hit the snake?
+            if (this._state.snakeTiles.find(v => v.equals(newPos))) {
+                continue;
+            }
 
             break;
         }
@@ -270,6 +266,8 @@ export class GameRenderer {
     private _paddingY: number;
     private _tileWidth: number;
     private _tileHeight: number;
+    private _boardHeight: number;
+    private _boardWidth: number;
     private _canvasHeight: number;
     private _canvasWidth: number;
     private _gameOptions: IGameOptions;
@@ -287,22 +285,25 @@ export class GameRenderer {
         this._tileWidth = tileLength;
         this._tileHeight = tileLength;
 
-        this._canvasWidth = this._gameOptions.xTiles * this._tileWidth;
-        this._canvasHeight = this._gameOptions.yTiles * this._tileHeight;
+        this._boardWidth = this._gameOptions.xTiles * this._tileWidth;
+        this._boardHeight = this._gameOptions.yTiles * this._tileHeight;
 
-        this._paddingX = (w - this._canvasWidth) / 2;
-        this._paddingY = (h - this._canvasHeight) / 2;
+        this._paddingX = (w - this._boardWidth) / 2;
+        this._paddingY = (h - this._boardHeight) / 2;
+
+        this._canvasWidth = w;
+        this._canvasHeight = h;
     }
 
     private _drawTile(ctx, v, tileStyle) {
         ctx.fillStyle = tileStyle;
         ctx.fillRect(
-            this._paddingX + v.x * this._tileWidth, this._paddingY + this._canvasHeight - v.y * this._tileHeight - this._tileHeight,
+            this._paddingX + v.x * this._tileWidth, this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
             this._tileWidth, this._tileHeight);
 
         ctx.strokeStyle = tileStyle;
         ctx.strokeRect(
-            this._paddingX + v.x * this._tileWidth, this._paddingY + this._canvasHeight - v.y * this._tileHeight - this._tileHeight,
+            this._paddingX + v.x * this._tileWidth, this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
             this._tileWidth, this._tileHeight);
     }
 
@@ -318,7 +319,7 @@ export class GameRenderer {
 
         // Draw blocks.
         gameState.blocks.forEach(block => {
-            this._drawTile(ctx, block, playbackMode ? 'purple' : 'black');
+            this._drawTile(ctx, block, 'black');
         });
 
         if (gameState.applePos) {
@@ -329,5 +330,15 @@ export class GameRenderer {
         });
 
         this._drawTile(ctx, gameState.headPosition, '#0000AF');
+
+        if (playbackMode) {
+            ctx.beginPath();
+            ctx.moveTo(10, 10);
+            ctx.lineTo(10, 60);
+            ctx.lineTo(60, 35);
+            ctx.closePath();
+            ctx.fillStyle = '#50FF50';
+            ctx.fill();
+        }
     }
 }

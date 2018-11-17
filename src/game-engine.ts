@@ -148,13 +148,12 @@ export class GameEngine {
             return; // Do nothing if the event was already processed
         }
 
-        // Can't process actions while in playback mode.
-        if (this._isPlaybackMode) {
-            return;
-        }
-
         if (event.key === 'P' || event.key === 'p') {
-            this._enterPlaybackMode();
+            if (!this._isPlaybackMode) {
+                this._enterPlaybackMode();
+            } else {
+                this._resumeLiveMode();
+            }
         } else if ( event.key ==='n' || event.key === 'N' ) {
             this._restartLiveMode();
         } else if ( event.key ==='+' ) {
