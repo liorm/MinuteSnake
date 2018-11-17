@@ -70,7 +70,7 @@ export class GameLogic {
     }
 
     private _resetState() {
-        const blocks: Vector[] = [];
+        let blocks: Vector[] = [];
         for (let x = 0; x < this._stage.xTiles; ++x) {
             blocks.push(
                 new Vector(x, 0),
@@ -83,6 +83,10 @@ export class GameLogic {
                 new Vector(this._stage.xTiles - 1, y)
             );
         }
+        blocks = blocks.filter(block => {
+            return !this._stage.wallHoles.find(hole => hole.equals(block));
+        });
+        blocks.push(...this._stage.blocks);
 
         this._pendingDuration = 0;
         this._totalDuration = 0;
@@ -101,7 +105,7 @@ export class GameLogic {
         };
     }
 
-    private _actionStep() {
+    private _actionStep(): boolean {
         let direction;
         switch (this._state.dir) {
             case EDirection.UP:
@@ -118,22 +122,35 @@ export class GameLogic {
                 break;
         }
     
-        this._state.headPosition = this._state.headPosition.add(direction);
-    
-        if (this._state.headPosition.x <= 0) {
-            this._state.headPosition.x = this.options.xTiles - 2;
+        let newPosition = this._state.headPosition.add(direction);
+
+        // Check if we hit the blocks?
+        if (this._state.blocks.find(v => v.equals(newPosition))) {
+            // TODO: Implement death logic.
+            return false;
         }
-        if (this._state.headPosition.y <= 0) {
-            this._state.headPosition.y = this.options.yTiles - 2;
+
+        // Check if we hit the snake?
+        if (this._state.snakeTiles.find(v => v.equals(newPosition))) {
+            // TODO: Implement death logic.
+            return false;
         }
-        if (this._state.headPosition.x >= this.options.xTiles - 1) {
-            this._state.headPosition.x = 1;
+
+        if (newPosition.x < 0) {
+            newPosition.x = this.options.xTiles - 1;
         }
-        if (this._state.headPosition.y >= this.options.yTiles - 1) {
-            this._state.headPosition.y = 1;
+        if (newPosition.y < 0) {
+            newPosition.y = this.options.yTiles - 1;
         }
-    
-        this._state.snakeTiles.push(this._state.headPosition.clone());
+        if (newPosition.x > this.options.xTiles - 1) {
+            newPosition.x = 0;
+        }
+        if (newPosition.y > this.options.yTiles - 1) {
+            newPosition.y = 0;
+        }
+
+        this._state.headPosition = newPosition;
+        this._state.snakeTiles.push(newPosition);
     
         // Eat the apple.
         if (this._state.headPosition.equals(this._state.applePos)) {
@@ -148,6 +165,8 @@ export class GameLogic {
         if (!this._state.applePos) {
             this._actionNewApple();
         }
+
+        return true;
     }
 
     private _actionNewApple() {
@@ -183,8 +202,15 @@ export class GameLogic {
             return false;
         }
 
+        const oldDir = this._state.dir;
         this._state.dir = newDir;
-        this._actionStep();
+
+        // Check if new direction is valid.
+        if (!this._actionStep()) {
+            this._state.dir = oldDir;
+            return false
+        }
+
         return true;
     }
 
@@ -288,11 +314,10 @@ export class GameRenderer {
         this._tileWidth = this._canvasWidth / options.xTiles;
         this._tileHeight = this._canvasHeight / options.yTiles;
 
-
         ctx.fillStyle = 'green';
         ctx.fillRect(
             this._paddingX, this._paddingY,
-            this._tileWidth * (options.xTiles - 1), this._tileHeight * (options.yTiles - 1));
+            this._tileWidth * options.xTiles, this._tileHeight * options.yTiles);
 
         // Draw blocks.
         gameState.blocks.forEach(block => {
@@ -303,7 +328,9 @@ export class GameRenderer {
             this._drawTile(ctx, gameState.applePos, 'red');
         }
         gameState.snakeTiles.forEach(tile => {
-            this._drawTile(ctx, tile, 'blue');
+            this._drawTile(ctx, tile, '#4040FF');
         });
+
+        this._drawTile(ctx, gameState.headPosition, '#0000AF');
     }
 }

@@ -238,10 +238,17 @@ export class GameEngine {
             yTiles: 60,
             seed: new Date().valueOf(),
             wallHoles: [
-                new Vector(0, 0),
+                new Vector(0, 11),
                 new Vector(0, 10),
+                new Vector(59, 11),
+                new Vector(59, 10),
             ],
-            blocks: []
+            blocks: [
+                new Vector(30, 30),
+                new Vector(30, 31),
+                new Vector(31, 31),
+                new Vector(31, 30),
+            ]
         };
 
         this._isPlaybackMode = false;
