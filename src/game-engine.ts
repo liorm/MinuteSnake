@@ -233,7 +233,7 @@ export class GameEngine {
 
     private _restartLiveMode() {
         const x = 60, y = 40;
-        const gameStage = {
+        const gameStage: IGameStage = {
             xTiles: x,
             yTiles: y,
             seed: new Date().valueOf(),
@@ -248,7 +248,8 @@ export class GameEngine {
                 new Vector(x / 2 - 1, y / 2 - 1),
                 new Vector(x / 2, y / 2 - 1),
                 new Vector(x / 2 - 1, y / 2),
-            ]
+            ],
+            snake: new Vector(4, 4),
         };
 
         this._isPlaybackMode = false;

@@ -27,6 +27,15 @@ export interface IGameOptions {
 export interface IGameStage extends IGameOptions {
     wallHoles: Vector[];
     blocks: Vector[];
+
+    /// Starting positions for the snake.
+    snake: Vector;
+}
+
+export interface IGameStateSnake {
+    position: Vector;
+    length: number;
+    tiles: Vector[];
 }
 
 export interface IGameState {
@@ -35,9 +44,7 @@ export interface IGameState {
     speed: number;
 
     applePos: Vector | null;
-    snakeTiles: Vector[];
-    snakeLength: number;
-    headPosition: Vector;
+    snake: IGameStateSnake;
 
     dir: EDirection;
     pendingDirs: EDirection[];
@@ -100,10 +107,12 @@ export class GameLogic {
             speed: 12,
 
             applePos: null,
-            snakeTiles: [],
-            snakeLength: 4,
-            headPosition: new Vector(1, 1),
-    
+            snake: {
+                position: this._stage.snake,
+                length: 4,
+                tiles: [],
+            },
+
             dir: EDirection.RIGHT,
             pendingDirs: [],
 
@@ -140,7 +149,7 @@ export class GameLogic {
                 return assertNever(state.dir); // error here if there are missing cases
         }
 
-        let newPosition = state.headPosition.add(direction);
+        let newPosition = state.snake.position.add(direction);
 
         // Check if we hit the blocks?
         if (state.blocks.find(v => v.equals(newPosition))) {
@@ -149,7 +158,7 @@ export class GameLogic {
         }
 
         // Check if we hit the snake?
-        if (state.snakeTiles.find(v => v.equals(newPosition))) {
+        if (state.snake.tiles.find(v => v.equals(newPosition))) {
             state.gameOver = true;
             return false;
         }
@@ -167,17 +176,17 @@ export class GameLogic {
             newPosition.y = 0;
         }
 
-        state.headPosition = newPosition;
-        state.snakeTiles.push(newPosition);
+        state.snake.position = newPosition;
+        state.snake.tiles.push(newPosition);
     
         // Eat the apple.
-        if (state.headPosition.equals(state.applePos)) {
+        if (state.snake.position.equals(state.applePos)) {
             state.applePos = null;
-            state.snakeLength += 2;
+            state.snake.length += 2;
         }
         
-        while (state.snakeTiles.length > state.snakeLength) {
-            state.snakeTiles.splice(0, 1);
+        while (state.snake.tiles.length > state.snake.length) {
+            state.snake.tiles.splice(0, 1);
         }
 
         if (!state.applePos) {
@@ -198,7 +207,7 @@ export class GameLogic {
             }
 
             // Check if we hit the snake?
-            if (this._state.snakeTiles.find(v => v.equals(newPos))) {
+            if (this._state.snake.tiles.find(v => v.equals(newPos))) {
                 continue;
             }
 
@@ -344,11 +353,11 @@ export class GameRenderer {
         if (gameState.applePos) {
             this._drawTile(ctx, gameState.applePos, 'red');
         }
-        gameState.snakeTiles.forEach(tile => {
+        gameState.snake.tiles.forEach(tile => {
             this._drawTile(ctx, tile, '#4040FF');
         });
 
-        this._drawTile(ctx, gameState.headPosition, '#0000AF');
+        this._drawTile(ctx, gameState.snake.position, '#0000AF');
 
         if (playbackMode) {
             ctx.beginPath();
