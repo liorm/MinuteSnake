@@ -29,13 +29,19 @@ export interface IGameStage extends IGameOptions {
     blocks: Vector[];
 
     /// Starting positions for the snake.
-    snake: Vector;
+    snakes: {
+        position: Vector,
+        direction: EDirection
+    }[];
 }
 
 export interface IGameStateSnake {
     position: Vector;
     length: number;
     tiles: Vector[];
+
+    dir: EDirection;
+    pendingDirs: EDirection[];
 }
 
 export interface IGameState {
@@ -44,10 +50,7 @@ export interface IGameState {
     speed: number;
 
     applePos: Vector | null;
-    snake: IGameStateSnake;
-
-    dir: EDirection;
-    pendingDirs: EDirection[];
+    snakes: IGameStateSnake[];
 
     gameOver: boolean;
 }
@@ -55,6 +58,7 @@ export interface IGameState {
 export interface IGameInputDirection {
     inputType: 'direction';
     dir: EDirection;
+    snakeIdx: number;
 }
 
 export interface IGameInputSpeed {
@@ -107,14 +111,15 @@ export class GameLogic {
             speed: 12,
 
             applePos: null,
-            snake: {
-                position: this._stage.snake,
-                length: 4,
-                tiles: [],
-            },
-
-            dir: EDirection.RIGHT,
-            pendingDirs: [],
+            snakes: this._stage.snakes.map(snake => {
+                return {
+                    position: snake.position,
+                    length: 4,
+                    tiles: [],
+                    dir: snake.direction,
+                    pendingDirs: [],
+                };
+            }),
 
             gameOver: false,
         };
@@ -126,67 +131,69 @@ export class GameLogic {
         if (state.gameOver)
             return false;
 
-        if (state.pendingDirs.length > 0) {
-            state.dir = state.pendingDirs[0];
-            state.pendingDirs.splice(0, 1);
-        }
+        for (let snake of state.snakes) {
+            if (snake.pendingDirs.length > 0) {
+                snake.dir = snake.pendingDirs[0];
+                snake.pendingDirs.splice(0, 1);
+            }
 
-        let direction: Vector;
-        switch (state.dir) {
-            case EDirection.UP:
-                direction = new Vector(0, 1);
-                break;
-            case EDirection.DOWN: 
-                direction = new Vector(0, -1);
-                break;
-            case EDirection.LEFT: 
-                direction = new Vector(-1, 0);
-                break;
-            case EDirection.RIGHT:
-                direction = new Vector(1, 0);
-                break;
-            default:
-                return assertNever(state.dir); // error here if there are missing cases
-        }
+            let direction: Vector;
+            switch (snake.dir) {
+                case EDirection.UP:
+                    direction = new Vector(0, 1);
+                    break;
+                case EDirection.DOWN:
+                    direction = new Vector(0, -1);
+                    break;
+                case EDirection.LEFT:
+                    direction = new Vector(-1, 0);
+                    break;
+                case EDirection.RIGHT:
+                    direction = new Vector(1, 0);
+                    break;
+                default:
+                    return assertNever(snake.dir); // error here if there are missing cases
+            }
 
-        let newPosition = state.snake.position.add(direction);
+            let newPosition = snake.position.add(direction);
 
-        // Check if we hit the blocks?
-        if (state.blocks.find(v => v.equals(newPosition))) {
-            state.gameOver = true;
-            return false;
-        }
+            // Check if we hit the blocks?
+            if (state.blocks.find(v => v.equals(newPosition))) {
+                state.gameOver = true;
+                return false;
+            }
 
-        // Check if we hit the snake?
-        if (state.snake.tiles.find(v => v.equals(newPosition))) {
-            state.gameOver = true;
-            return false;
-        }
+            // Check if we hit the snake?
+            if (snake.tiles.find(v => v.equals(newPosition))) {
+                state.gameOver = true;
+                return false;
+            }
 
-        if (newPosition.x < 0) {
-            newPosition.x = this.options.xTiles - 1;
-        }
-        if (newPosition.y < 0) {
-            newPosition.y = this.options.yTiles - 1;
-        }
-        if (newPosition.x > this.options.xTiles - 1) {
-            newPosition.x = 0;
-        }
-        if (newPosition.y > this.options.yTiles - 1) {
-            newPosition.y = 0;
-        }
+            if (newPosition.x < 0) {
+                newPosition.x = this.options.xTiles - 1;
+            }
+            if (newPosition.y < 0) {
+                newPosition.y = this.options.yTiles - 1;
+            }
+            if (newPosition.x > this.options.xTiles - 1) {
+                newPosition.x = 0;
+            }
+            if (newPosition.y > this.options.yTiles - 1) {
+                newPosition.y = 0;
+            }
 
-        state.snake.position = newPosition;
-        state.snake.tiles.push(newPosition);
-    
-        // Eat the apple.
-        if (state.snake.position.equals(state.applePos)) {
-            state.applePos = null;
-            state.snake.length += 2;
-        }
-        
-        while (state.snake.tiles.length > state.snake.length) {
-            state.snake.tiles.splice(0, 1);
+            snake.position = newPosition;
+            snake.tiles.push(newPosition);
+
+            // Eat the apple.
+            if (snake.position.equals(state.applePos)) {
+                state.applePos = null;
+                snake.length += 2;
+            }
+
+            while (snake.tiles.length > snake.length) {
+                snake.tiles.splice(0, 1);
+            }
         }
 
         if (!state.applePos) {
@@ -207,7 +214,7 @@ export class GameLogic {
             }
 
             // Check if we hit the snake?
-            if (this._state.snake.tiles.find(v => v.equals(newPos))) {
+            if ( this._state.snakes.find(snake => !!snake.tiles.find(v => v.equals(newPos))) ) {
                 continue;
             }
 
@@ -216,14 +223,15 @@ export class GameLogic {
         this._state.applePos = newPos;
     }
 
-    private _actionNewDir(newDir: EDirection): boolean {
-        if (this._state.pendingDirs.length >= 2) {
+    private _actionNewDir(snakeIdx: number, newDir: EDirection): boolean {
+        const snakeState = this._state.snakes[snakeIdx];
+        if (snakeState.pendingDirs.length >= 2) {
             return false;
         }
 
-        let curDir = this._state.dir;
-        if (this._state.pendingDirs.length > 0) {
-            curDir = this._state.pendingDirs[this._state.pendingDirs.length - 1];
+        let curDir = snakeState.dir;
+        if (snakeState.pendingDirs.length > 0) {
+            curDir = snakeState.pendingDirs[snakeState.pendingDirs.length - 1];
         }
 
         if (curDir === newDir) {
@@ -234,7 +242,7 @@ export class GameLogic {
             return false;
         }
 
-        this._state.pendingDirs.push(newDir);
+        snakeState.pendingDirs.push(newDir);
         return true;
     }
 
@@ -255,7 +263,7 @@ export class GameLogic {
         let handled = false;
         switch (input.inputType) {
             case 'direction':
-                handled = this._actionNewDir(input.dir);
+                handled = this._actionNewDir(input.snakeIdx, input.dir);
                 break;
             case 'speed':
                 handled = this._actionSpeedChange(input.speedIncrement);
@@ -353,11 +361,14 @@ export class GameRenderer {
         if (gameState.applePos) {
             this._drawTile(ctx, gameState.applePos, 'red');
         }
-        gameState.snake.tiles.forEach(tile => {
-            this._drawTile(ctx, tile, '#4040FF');
+
+        gameState.snakes.forEach(snake => {
+            snake.tiles.forEach(tile => {
+                this._drawTile(ctx, tile, '#4040FF');
+            });
+            this._drawTile(ctx, snake.position, '#0000AF');
         });
 
-        this._drawTile(ctx, gameState.snake.position, '#0000AF');
 
         if (playbackMode) {
             ctx.beginPath();

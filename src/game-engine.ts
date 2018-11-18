@@ -1,10 +1,4 @@
-import {
-    EDirection,
-    GameInput,
-    GameRenderer,
-    GameLogic,
-    IGameOptions, IGameEventInput, IGameState, IGameStage
-} from './game-logic';
+import {EDirection, GameInput, GameLogic, GameRenderer, IGameEventInput, IGameStage, IGameState} from './game-logic';
 import {Vector} from "./utils";
 
 abstract class GameHandlerBase {
@@ -168,17 +162,31 @@ export class GameEngine {
             });
         } else {
             let newDirection;
+            let snakeIdx = 1;
 
+            // noinspection FallThroughInSwitchStatementJS
             switch (event.key) {
+                case "S":
+                case "s":
+                    snakeIdx = 0;
                 case "ArrowDown":
                     newDirection = EDirection.DOWN;
                     break;
+                case "W":
+                case "w":
+                    snakeIdx = 0;
                 case "ArrowUp":
                     newDirection = EDirection.UP;
                     break;
+                case "A":
+                case "a":
+                    snakeIdx = 0;
                 case "ArrowLeft":
                     newDirection = EDirection.LEFT;
                     break;
+                case "D":
+                case "d":
+                    snakeIdx = 0;
                 case "ArrowRight":
                     newDirection = EDirection.RIGHT;
                     break;
@@ -188,7 +196,8 @@ export class GameEngine {
 
             this._performInput({
                 inputType: 'direction',
-                dir: newDirection
+                dir: newDirection,
+                snakeIdx: snakeIdx,
             });
         }
 
@@ -249,7 +258,13 @@ export class GameEngine {
                 new Vector(x / 2, y / 2 - 1),
                 new Vector(x / 2 - 1, y / 2),
             ],
-            snake: new Vector(4, 4),
+            snakes: [ {
+                position: new Vector(4, 4),
+                direction: EDirection.RIGHT,
+            }, {
+                position: new Vector(x - 4, y - 4),
+                direction: EDirection.LEFT,
+            } ],
         };
 
         this._isPlaybackMode = false;
