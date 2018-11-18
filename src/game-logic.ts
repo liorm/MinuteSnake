@@ -361,12 +361,13 @@ export class GameRenderer {
         }
 
         if (gameState.gameOver) {
-            ctx.font="70px Georgia";
+            const fontSize = this._boardHeight / 10;
+            ctx.font=`Bold ${fontSize}pt Georgia`;
             ctx.fillStyle = 'black';
             ctx.strokeStyle = 'white';
             const measurement = ctx.measureText("Game Over!");
-            ctx.fillText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - 70) / 2);
-            ctx.strokeText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - 70) / 2);
+            ctx.fillText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - fontSize) / 2);
+            ctx.strokeText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - fontSize) / 2);
         }
     }
 }
