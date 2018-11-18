@@ -40,6 +40,7 @@ export interface IGameState {
     headPosition: Vector;
 
     dir: EDirection;
+    pendingDirs: EDirection[];
 
     gameOver: boolean;
 }
@@ -104,17 +105,25 @@ export class GameLogic {
             headPosition: new Vector(1, 1),
     
             dir: EDirection.RIGHT,
+            pendingDirs: [],
 
             gameOver: false,
         };
     }
 
     private _actionStep(): boolean {
-        if (this._state.gameOver)
+        const state = this._state;
+
+        if (state.gameOver)
             return false;
 
-        let direction;
-        switch (this._state.dir) {
+        if (state.pendingDirs.length > 0) {
+            state.dir = state.pendingDirs[0];
+            state.pendingDirs.splice(0, 1);
+        }
+
+        let direction: Vector;
+        switch (state.dir) {
             case EDirection.UP:
                 direction = new Vector(0, 1);
                 break;
@@ -124,22 +133,24 @@ export class GameLogic {
             case EDirection.LEFT: 
                 direction = new Vector(-1, 0);
                 break;
-            case EDirection.RIGHT: 
+            case EDirection.RIGHT:
                 direction = new Vector(1, 0);
                 break;
+            default:
+                return assertNever(state.dir); // error here if there are missing cases
         }
 
-        let newPosition = this._state.headPosition.add(direction);
+        let newPosition = state.headPosition.add(direction);
 
         // Check if we hit the blocks?
-        if (this._state.blocks.find(v => v.equals(newPosition))) {
-            this._state.gameOver = true;
+        if (state.blocks.find(v => v.equals(newPosition))) {
+            state.gameOver = true;
             return false;
         }
 
         // Check if we hit the snake?
-        if (this._state.snakeTiles.find(v => v.equals(newPosition))) {
-            this._state.gameOver = true;
+        if (state.snakeTiles.find(v => v.equals(newPosition))) {
+            state.gameOver = true;
             return false;
         }
 
@@ -156,20 +167,20 @@ export class GameLogic {
             newPosition.y = 0;
         }
 
-        this._state.headPosition = newPosition;
-        this._state.snakeTiles.push(newPosition);
+        state.headPosition = newPosition;
+        state.snakeTiles.push(newPosition);
     
         // Eat the apple.
-        if (this._state.headPosition.equals(this._state.applePos)) {
-            this._state.applePos = null;
-            this._state.snakeLength += 2;
+        if (state.headPosition.equals(state.applePos)) {
+            state.applePos = null;
+            state.snakeLength += 2;
         }
         
-        while (this._state.snakeTiles.length > this._state.snakeLength) {
-            this._state.snakeTiles.splice(0, 1);
+        while (state.snakeTiles.length > state.snakeLength) {
+            state.snakeTiles.splice(0, 1);
         }
 
-        if (!this._state.applePos) {
+        if (!state.applePos) {
             this._actionNewApple();
         }
 
@@ -197,23 +208,24 @@ export class GameLogic {
     }
 
     private _actionNewDir(newDir: EDirection): boolean {
-        if (this._state.dir === newDir) {
+        if (this._state.pendingDirs.length >= 2) {
             return false;
         }
 
-        if (this._state.dir + newDir === 0) {
+        let curDir = this._state.dir;
+        if (this._state.pendingDirs.length > 0) {
+            curDir = this._state.pendingDirs[this._state.pendingDirs.length - 1];
+        }
+
+        if (curDir === newDir) {
             return false;
         }
 
-        const oldDir = this._state.dir;
-        this._state.dir = newDir;
-
-        // Check if new direction is valid.
-        if (!this._actionStep()) {
-            this._state.dir = oldDir;
-            return false
+        if (curDir + newDir === 0) {
+            return false;
         }
 
+        this._state.pendingDirs.push(newDir);
         return true;
     }
 
