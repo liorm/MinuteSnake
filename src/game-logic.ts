@@ -1,82 +1,40 @@
-import { Vector } from './utils';
+import {Vector} from './utils';
 import * as seedrandom from 'seedrandom';
+import {
+    EDirection,
+    GameInput,
+    IGameEventInput,
+    IGameOptions,
+    IGameStage,
+    IGameState,
+    IGameStateSnake
+} from "./interfaces";
 
 function assertNever(x: never): never {
     throw new Error("Unexpected object: " + x);
 }
 
-
-export interface IGameEventInput {
-    eventTime: number;
-    gameInput: GameInput;
-}
-
-export enum EDirection {
-    UP = 1,
-    RIGHT = 2,
-    LEFT = -2,
-    DOWN = -1,
-}
-
-export interface IGameOptions {
-    xTiles: number;
-    yTiles: number;
-    seed: number;
-}
-
-export interface IGameStage extends IGameOptions {
-    wallHoles: Vector[];
-    blocks: Vector[];
-
-    /// Starting positions for the snake.
-    snakes: {
-        position: Vector,
-        direction: EDirection
-    }[];
-}
-
-export interface IGameStateSnake {
-    position: Vector;
-    length: number;
-    tiles: Vector[];
-
+interface IInternalGameStateSnake extends IGameStateSnake {
     dir: EDirection;
     pendingDirs: EDirection[];
 }
 
-export interface IGameState {
-    blocks: Vector[];
-
+interface IInternalGameState extends IGameState {
     speed: number;
-
-    applePos: Vector | null;
-    snakes: IGameStateSnake[];
-
-    gameOver: boolean;
+    snakes: IInternalGameStateSnake[];
 }
-
-export interface IGameInputDirection {
-    inputType: 'direction';
-    dir: EDirection;
-    snakeIdx: number;
-}
-
-export interface IGameInputSpeed {
-    inputType: 'speed';
-    speedIncrement: number;
-}
-
-export type GameInput = IGameInputDirection | IGameInputSpeed;
 
 export class GameLogic {
     private _prng: seedrandom.prng;
-    private _state: IGameState;
+    private _state: IInternalGameState;
     private _pendingDuration: number;
     private _totalDuration: number;
+
     onInputCallback: (event: IGameEventInput) => void;
+    onStateChanged: (state: IInternalGameState) => void;
 
     get options(): IGameOptions { return this._stage; }
-    get state(): IGameState { return this._state; }
+    get state(): IInternalGameState { return this._state; }
     get totalDuration(): number { return this._totalDuration; }
 
     constructor(private _stage: IGameStage) {
@@ -345,9 +303,11 @@ export class GameRenderer {
 
     render(
         ctx: CanvasRenderingContext2D,
-        gameState: IGameState,
+        gameLogic: GameLogic,
         playbackMode: boolean
     ) {
+        const gameState = gameLogic.state;
+
         ctx.fillStyle = 'green';
         ctx.fillRect(
             this._paddingX, this._paddingY,

@@ -1,14 +1,26 @@
-import {EDirection, GameInput, GameLogic, GameRenderer, IGameEventInput, IGameStage, IGameState} from './game-logic';
+import {
+    GameLogic,
+    GameRenderer
+} from './game-logic';
 import {Vector} from "./utils";
+import {HumanActor} from "./snake-actors/human-actor";
+import {
+    EDirection,
+    GameInput,
+    IGameEventInput,
+    IGameStage,
+    ISnakeActor
+} from "./interfaces";
 
 abstract class GameHandlerBase {
     abstract get gameStage(): IGameStage;
-    abstract get state(): IGameState;
+    abstract get gameLogic(): GameLogic;
     abstract get savedInputs(): IGameEventInput[];
     abstract get isDone(): boolean;
     abstract advanceTime(duration: number);
     abstract performInput(input: GameInput);
 }
+
 
 class LiveHandler extends GameHandlerBase {
     private _gameLogic: GameLogic;
@@ -43,8 +55,8 @@ class LiveHandler extends GameHandlerBase {
 
     get isDone() { return false; }
 
-    get state(): IGameState {
-        return this._gameLogic.state;
+    get gameLogic(): GameLogic {
+        return this._gameLogic;
     }
 
     private _onGameInput(e) {
@@ -92,7 +104,7 @@ class PlaybackHandler extends GameHandlerBase {
 
             this._gameLogic.advanceTime(newPlayedDuration - this._gameLogic.totalDuration);
 
-                if (this._gameLogic.totalDuration >= nextInput.eventTime) {
+            if (this._gameLogic.totalDuration >= nextInput.eventTime) {
                 this._gameLogic.input(nextInput.gameInput);
                 ++this._inputIndex;
             }
@@ -101,8 +113,8 @@ class PlaybackHandler extends GameHandlerBase {
         }
     }
 
-    get state(): IGameState {
-        return this._gameLogic.state;
+    get gameLogic(): GameLogic {
+        return this._gameLogic;
     }
 
     performInput(input: GameInput) {
@@ -113,6 +125,8 @@ class PlaybackHandler extends GameHandlerBase {
 export class GameEngine {
     private _gameRenderer: GameRenderer;
     private _handler: GameHandlerBase;
+
+    private _actors: ISnakeActor[];
 
     private _lastEngineTime: number;
     private _isPlaybackMode = false;
@@ -126,6 +140,11 @@ export class GameEngine {
 
     start() {
         this._gameRenderer = new GameRenderer();
+
+        this._actors = [
+            new HumanActor(0),
+            new HumanActor(1)
+        ];
 
         this._restartLiveMode();
         this._initListeners();
@@ -142,6 +161,10 @@ export class GameEngine {
             return; // Do nothing if the event was already processed
         }
 
+        // Before performing the input, ensure that the game logic is
+        // up to date (so the event recording will be recorded at the correct timestamp)
+        this._advanceTimeToNow();
+
         if (event.key === 'P' || event.key === 'p') {
             if (!this._isPlaybackMode) {
                 this._enterPlaybackMode();
@@ -151,54 +174,22 @@ export class GameEngine {
         } else if ( event.key ==='n' || event.key === 'N' ) {
             this._restartLiveMode();
         } else if ( event.key ==='+' ) {
-            this._performInput({
+            this._handler.performInput({
                 inputType: 'speed',
                 speedIncrement: 1,
             });
         } else if ( event.key ==='-' ) {
-            this._performInput({
+            this._handler.performInput({
                 inputType: 'speed',
                 speedIncrement: -1,
             });
         } else {
-            let newDirection;
-            let snakeIdx = 1;
-
-            // noinspection FallThroughInSwitchStatementJS
-            switch (event.key) {
-                case "S":
-                case "s":
-                    snakeIdx = 0;
-                case "ArrowDown":
-                    newDirection = EDirection.DOWN;
-                    break;
-                case "W":
-                case "w":
-                    snakeIdx = 0;
-                case "ArrowUp":
-                    newDirection = EDirection.UP;
-                    break;
-                case "A":
-                case "a":
-                    snakeIdx = 0;
-                case "ArrowLeft":
-                    newDirection = EDirection.LEFT;
-                    break;
-                case "D":
-                case "d":
-                    snakeIdx = 0;
-                case "ArrowRight":
-                    newDirection = EDirection.RIGHT;
-                    break;
-                default:
-                    return;
-            }
-
-            this._performInput({
-                inputType: 'direction',
-                dir: newDirection,
-                snakeIdx: snakeIdx,
-            });
+            this._actors.forEach(actor => {
+                const input = actor.handleKeyboardInput(event);
+                if (input) {
+                    this._handler.performInput(input);
+                }
+            })
         }
 
         event.preventDefault();
@@ -222,11 +213,6 @@ export class GameEngine {
 
     private _update() {
         this._advanceTimeToNow();
-    }
-
-    private _performInput(input: GameInput) {
-        this._advanceTimeToNow();
-        this._handler.performInput(input);
     }
 
     private _advanceTimeToNow() {
@@ -269,6 +255,7 @@ export class GameEngine {
 
         this._isPlaybackMode = false;
         this._handler = new LiveHandler(gameStage);
+        this._actors.forEach(actor => actor.initialize(gameStage));
         this._lastEngineTime = performance.now();
         this._gameRenderer.initRenderer(this._handler.gameStage);
     }
@@ -288,7 +275,7 @@ export class GameEngine {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this._gameRenderer.render(
             this.ctx,
-            this._handler.state,
+            this._handler.gameLogic,
             this._isPlaybackMode
         );
     }
