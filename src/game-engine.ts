@@ -153,10 +153,10 @@ export class GameEngine {
     }
 
     private _initListeners() {
-        this.wnd.on('resize', () => this._updateCanvasDimensions()).on('keydown', (e) => this._onKeyDown(e));
+        this.wnd.on('resize', () => this._updateCanvasDimensions()).on('keydown', (e) => this._onKeyDown(<KeyboardEvent>e.originalEvent));
     }
 
-    private _onKeyDown(event) {
+    private _onKeyDown(event: KeyboardEvent) {
         if (event.defaultPrevented) {
             return; // Do nothing if the event was already processed
         }

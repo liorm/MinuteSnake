@@ -68,7 +68,7 @@ export interface ISnakeActor {
     initialize(stage: IGameStage);
 
     /**
-     * After a step is performed, inform the actor of the new game state.
+     * inform the actor of the new game state.
      * @param state
      */
     updateState(state: IGameState): IGameInputDirection | null;
@@ -79,4 +79,3 @@ export interface ISnakeActor {
      */
     handleKeyboardInput(event: KeyboardEvent): IGameInputDirection | null;
 }
-
