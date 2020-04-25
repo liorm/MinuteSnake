@@ -14,27 +14,51 @@ function assertNever(x: never): never {
     throw new Error("Unexpected object: " + x);
 }
 
-interface IInternalGameStateSnake extends IGameStateSnake {
-    dir: EDirection;
-    pendingDirs: EDirection[];
+class GameStateSnake implements IGameStateSnake {
+    public pendingDirs: EDirection[];
+    public tiles: Vector[];
+
+    constructor(
+        public position: Vector,
+        public dir: EDirection,
+        public length: number,
+    ) {
+        this.tiles = [];
+        this.pendingDirs = [];
+    }
 }
 
-interface IInternalGameState extends IGameState {
+class GameState implements IGameState {
+    applePos: Vector | null;
+    blocks: Vector[];
+    gameOver: boolean;
+    snakes: GameStateSnake[];
     speed: number;
-    snakes: IInternalGameStateSnake[];
+
+    constructor(
+        blocks: Vector[],
+        snakes: GameStateSnake[],
+        speed: number
+    ) {
+        this.blocks = blocks;
+        this.snakes = snakes;
+        this.speed = speed;
+        this.applePos = null;
+        this.gameOver = false;
+    }
 }
 
 export class GameLogic {
     private _prng: seedrandom.prng;
-    private _state: IInternalGameState;
+    private _state: GameState;
     private _pendingDuration: number;
     private _totalDuration: number;
 
     onInputCallback: (event: IGameEventInput) => void;
-    onStateChanged: (state: IInternalGameState) => void;
+    onStateChanged: (state: IGameState) => void;
 
     get options(): IGameOptions { return this._stage; }
-    get state(): IInternalGameState { return this._state; }
+    get state(): GameState { return this._state; }
     get totalDuration(): number { return this._totalDuration; }
 
     constructor(private _stage: IGameStage) {
@@ -63,24 +87,11 @@ export class GameLogic {
         this._pendingDuration = 0;
         this._totalDuration = 0;
         this._prng = seedrandom(`${this.options.seed}\0`, {global: false});
-        this._state = {
-            blocks: blocks,
-
-            speed: 12,
-
-            applePos: null,
-            snakes: this._stage.snakes.map(snake => {
-                return {
-                    position: snake.position,
-                    length: 4,
-                    tiles: [],
-                    dir: snake.direction,
-                    pendingDirs: [],
-                };
-            }),
-
-            gameOver: false,
-        };
+        this._state = new GameState(
+            blocks,
+            this._stage.snakes.map(
+                snake => new GameStateSnake(snake.position, snake.direction, 4)),
+            12);
     }
 
     private _actionStep(): boolean {

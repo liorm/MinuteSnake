@@ -50,8 +50,6 @@ export interface IGameStateSnake {
 }
 
 export interface IGameState {
-    blocks: Vector[];
-
     applePos: Vector | null;
     snakes: IGameStateSnake[];
 
