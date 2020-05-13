@@ -16,7 +16,7 @@ jobs:
         run: |
           npm install
           npm install typescript@3.1.6
-          npm-do tsc --build
+          node_modules/.bin/tsc --build
           mkdir dist
           cp -a index.html dist/
           cp -a style.css dist/
