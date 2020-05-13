@@ -14,10 +14,9 @@ jobs:
 
       - name: Install and Build 🔧
         run: |
-          npm install -g typescript@3.1.6
           npm install
-          tsc --build
-          tsc --build
+          npm install typescript@3.1.6
+          npm-do tsc --build
           mkdir dist
           cp -a index.html dist/
           cp -a style.css dist/
