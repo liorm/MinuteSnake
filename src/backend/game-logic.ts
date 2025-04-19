@@ -142,7 +142,8 @@ export class GameLogic {
     for (let x = 0; x < this._stage.xTiles; ++x) {
       blocks.push(new Vector(x, 0), new Vector(x, this._stage.yTiles - 1));
     }
-    for (let y = 1; y < this._stage.yTiles; ++y) {
+    // Add vertical walls (left and right) excluding corners
+    for (let y = 1; y < this._stage.yTiles - 1; ++y) {
       blocks.push(new Vector(0, y), new Vector(this._stage.xTiles - 1, y));
     }
     blocks = blocks.filter(block => {
