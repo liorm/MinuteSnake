@@ -1,9 +1,19 @@
 {
+  "name": "minute-snake",
+  "version": "1.0.0",
+  "description": "Modern Snake game implementation",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "tsc --watch",
+    "serve": "http-server ."
+  },
   "devDependencies": {
-    "@types/jquery": "^3.3.22",
-    "@types/seedrandom": "^2.4.27"
+    "typescript": "^5.0.0",
+    "http-server": "^14.1.1",
+    "@types/seedrandom": "^3.0.8"
   },
   "dependencies": {
-    "requirejs": "^2.3.6"
+    "seedrandom": "^3.0.5"
   }
 }

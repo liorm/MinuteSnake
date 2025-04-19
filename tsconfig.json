@@ -1,9 +1,18 @@
 {
-    "compilerOptions": {
-        "target": "es6",
-        "module": "amd",
-        "sourceMap": true,
-        "outFile": "scripts/main.js",
-        "strictNullChecks": true
-    }
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "allowJs": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
 }

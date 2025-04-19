@@ -1,10 +1,9 @@
-import { Vector } from './utils';
-import * as seedrandom from 'seedrandom';
+import { Vector } from './utils.js';
+import seedrandom from 'seedrandom';
 
 function assertNever(x: never): never {
     throw new Error("Unexpected object: " + x);
 }
-
 
 export interface IGameEventInput {
     eventTime: number;
@@ -39,19 +38,15 @@ export interface IGameStateSnake {
     position: Vector;
     length: number;
     tiles: Vector[];
-
     dir: EDirection;
     pendingDirs: EDirection[];
 }
 
 export interface IGameState {
     blocks: Vector[];
-
     speed: number;
-
     applePos: Vector | null;
     snakes: IGameStateSnake[];
-
     gameOver: boolean;
 }
 
@@ -69,21 +64,22 @@ export interface IGameInputSpeed {
 export type GameInput = IGameInputDirection | IGameInputSpeed;
 
 export class GameLogic {
-    private _prng: seedrandom.prng;
+    private _prng: seedrandom.PRNG;
     private _state: IGameState;
-    private _pendingDuration: number;
-    private _totalDuration: number;
-    onInputCallback: (event: IGameEventInput) => void;
+    private _pendingDuration: number = 0;
+    private _totalDuration: number = 0;
+    onInputCallback: ((event: IGameEventInput) => void) | undefined;
 
     get options(): IGameOptions { return this._stage; }
     get state(): IGameState { return this._state; }
     get totalDuration(): number { return this._totalDuration; }
 
     constructor(private _stage: IGameStage) {
-        this._resetState();
+        this._prng = seedrandom(`${_stage.seed}\0`);
+        this._state = this._createInitialState();
     }
 
-    private _resetState() {
+    private _createInitialState(): IGameState {
         let blocks: Vector[] = [];
         for (let x = 0; x < this._stage.xTiles; ++x) {
             blocks.push(
@@ -102,36 +98,36 @@ export class GameLogic {
         });
         blocks.push(...this._stage.blocks);
 
-        this._pendingDuration = 0;
-        this._totalDuration = 0;
-        this._prng = seedrandom(`${this.options.seed}\0`, {global: false});
-        this._state = {
-            blocks: blocks,
-
+        return {
+            blocks,
             speed: 12,
-
             applePos: null,
-            snakes: this._stage.snakes.map(snake => {
-                return {
-                    position: snake.position,
-                    length: 4,
-                    tiles: [],
-                    dir: snake.direction,
-                    pendingDirs: [],
-                };
-            }),
-
+            snakes: this._stage.snakes.map(snake => ({
+                position: snake.position,
+                length: 4,
+                tiles: [],
+                dir: snake.direction,
+                pendingDirs: [],
+            })),
             gameOver: false,
         };
+    }
+
+    private _resetState(): void {
+        this._pendingDuration = 0;
+        this._totalDuration = 0;
+        this._prng = seedrandom(`${this.options.seed}\0`);
+        this._state = this._createInitialState();
     }
 
     private _actionStep(): boolean {
         const state = this._state;
 
-        if (state.gameOver)
+        if (state.gameOver) {
             return false;
+        }
 
-        for (let snake of state.snakes) {
+        for (const snake of state.snakes) {
             if (snake.pendingDirs.length > 0) {
                 snake.dir = snake.pendingDirs[0];
                 snake.pendingDirs.splice(0, 1);
@@ -152,18 +148,16 @@ export class GameLogic {
                     direction = new Vector(1, 0);
                     break;
                 default:
-                    return assertNever(snake.dir); // error here if there are missing cases
+                    return assertNever(snake.dir);
             }
 
             let newPosition = snake.position.add(direction);
 
-            // Check if we hit the blocks?
             if (state.blocks.find(v => v.equals(newPosition))) {
                 state.gameOver = true;
                 return false;
             }
 
-            // Check if we hit the snake?
             if (snake.tiles.find(v => v.equals(newPosition))) {
                 state.gameOver = true;
                 return false;
@@ -185,7 +179,6 @@ export class GameLogic {
             snake.position = newPosition;
             snake.tiles.push(newPosition);
 
-            // Eat the apple.
             if (snake.position.equals(state.applePos)) {
                 state.applePos = null;
                 snake.length += 2;
@@ -203,18 +196,19 @@ export class GameLogic {
         return true;
     }
 
-    private _actionNewApple() {
-        let newPos;
+    private _actionNewApple(): void {
+        let newPos: Vector;
         while (true) {
-            newPos = new Vector(Math.floor(this._prng() * this.options.xTiles), Math.floor(this._prng() * this.options.yTiles));
+            newPos = new Vector(
+                Math.floor(this._prng() * this.options.xTiles),
+                Math.floor(this._prng() * this.options.yTiles)
+            );
 
-            // Check if we hit the blocks?
             if (this._state.blocks.find(v => v.equals(newPos))) {
                 continue;
             }
 
-            // Check if we hit the snake?
-            if ( this._state.snakes.find(snake => !!snake.tiles.find(v => v.equals(newPos))) ) {
+            if (this._state.snakes.find(snake => !!snake.tiles.find(v => v.equals(newPos)))) {
                 continue;
             }
 
@@ -234,11 +228,7 @@ export class GameLogic {
             curDir = snakeState.pendingDirs[snakeState.pendingDirs.length - 1];
         }
 
-        if (curDir === newDir) {
-            return false;
-        }
-
-        if (curDir + newDir === 0) {
+        if (curDir === newDir || curDir + newDir === 0) {
             return false;
         }
 
@@ -247,19 +237,13 @@ export class GameLogic {
     }
 
     private _actionSpeedChange(speedIncrement: number): boolean {
-        let newSpeed = this._state.speed += speedIncrement;
-        if (newSpeed <= 1) {
-            newSpeed = 1;
-        }
-        if (newSpeed >= 1000) {
-            newSpeed = 1000;
-        }
-
+        let newSpeed = this._state.speed + speedIncrement;
+        newSpeed = Math.max(1, Math.min(1000, newSpeed));
         this._state.speed = newSpeed;
         return true;
     }
 
-    input(input: GameInput) {
+    input(input: GameInput): void {
         let handled = false;
         switch (input.inputType) {
             case 'direction':
@@ -268,11 +252,10 @@ export class GameLogic {
             case 'speed':
                 handled = this._actionSpeedChange(input.speedIncrement);
                 break;
-            default: 
-                return assertNever(input); // error here if there are missing cases
+            default:
+                assertNever(input);
         }
 
-        // Broadcast only handled inputs
         if (this.onInputCallback && handled) {
             this.onInputCallback({
                 eventTime: this._totalDuration,
@@ -281,13 +264,10 @@ export class GameLogic {
         }
     }
 
-    advanceTime(duration: number) {
+    advanceTime(duration: number): void {
         this._totalDuration += duration;
-
-        // Advance time.
         this._pendingDuration += duration;
 
-        // Perform pending steps
         const stepSize = (1000 / this._state.speed);
         const totalSteps = Math.floor(this._pendingDuration / stepSize);
         for (let i = 0; i < totalSteps; ++i) {
@@ -297,71 +277,88 @@ export class GameLogic {
     }
 }
 
+interface ITileStyle {
+    fillStyle: string;
+    strokeStyle?: string;
+}
+
 export class GameRenderer {
-    private _paddingX: number;
-    private _paddingY: number;
-    private _tileWidth: number;
-    private _tileHeight: number;
-    private _boardHeight: number;
-    private _boardWidth: number;
-    private _canvasHeight: number;
-    private _canvasWidth: number;
-    private _gameOptions: IGameOptions;
+    private _paddingX: number = 0;
+    private _paddingY: number = 0;
+    private _tileWidth: number = 0;
+    private _tileHeight: number = 0;
+    private _boardHeight: number = 0;
+    private _boardWidth: number = 0;
+    private _canvasHeight: number = 0;
+    private _canvasWidth: number = 0;
+    private _gameOptions!: IGameOptions;
 
-    constructor() {
-    }
-
-    initRenderer(gameOptions: IGameOptions) {
+    initRenderer(gameOptions: IGameOptions): void {
         this._gameOptions = gameOptions;
     }
 
-    onCanvasSizeChanged(w: number, h: number) {
-        const tileLength = Math.min( w/this._gameOptions.xTiles, h/this._gameOptions.yTiles);
+    onCanvasSizeChanged(w: number, h: number): void {
+        const tileLength = Math.min(w / this._gameOptions.xTiles, h / this._gameOptions.yTiles);
 
         this._tileWidth = tileLength;
         this._tileHeight = tileLength;
-
         this._boardWidth = this._gameOptions.xTiles * this._tileWidth;
         this._boardHeight = this._gameOptions.yTiles * this._tileHeight;
-
         this._paddingX = (w - this._boardWidth) / 2;
         this._paddingY = (h - this._boardHeight) / 2;
-
         this._canvasWidth = w;
         this._canvasHeight = h;
     }
 
-    private _drawTile(ctx, v, tileStyle) {
-        ctx.fillStyle = tileStyle;
-        ctx.fillRect(
-            this._paddingX + v.x * this._tileWidth, this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
-            this._tileWidth, this._tileHeight);
+    private _drawTile(ctx: CanvasRenderingContext2D, v: Vector, style: string | ITileStyle): void {
+        const { fillStyle, strokeStyle } = typeof style === 'string' 
+            ? { fillStyle: style, strokeStyle: style }
+            : style;
 
-        ctx.strokeStyle = tileStyle;
-        ctx.strokeRect(
-            this._paddingX + v.x * this._tileWidth, this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
-            this._tileWidth, this._tileHeight);
+        ctx.fillStyle = fillStyle;
+        ctx.fillRect(
+            this._paddingX + v.x * this._tileWidth,
+            this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
+            this._tileWidth,
+            this._tileHeight
+        );
+
+        if (strokeStyle) {
+            ctx.strokeStyle = strokeStyle;
+            ctx.strokeRect(
+                this._paddingX + v.x * this._tileWidth,
+                this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
+                this._tileWidth,
+                this._tileHeight
+            );
+        }
     }
 
     render(
         ctx: CanvasRenderingContext2D,
         gameState: IGameState,
         playbackMode: boolean
-    ) {
+    ): void {
+        // Draw background
         ctx.fillStyle = 'green';
         ctx.fillRect(
-            this._paddingX, this._paddingY,
-            this._tileWidth * this._gameOptions.xTiles, this._tileHeight * this._gameOptions.yTiles);
+            this._paddingX,
+            this._paddingY,
+            this._boardWidth,
+            this._boardHeight
+        );
 
-        // Draw blocks.
+        // Draw blocks
         gameState.blocks.forEach(block => {
             this._drawTile(ctx, block, 'black');
         });
 
+        // Draw apple
         if (gameState.applePos) {
             this._drawTile(ctx, gameState.applePos, 'red');
         }
 
+        // Draw snakes
         gameState.snakes.forEach(snake => {
             snake.tiles.forEach(tile => {
                 this._drawTile(ctx, tile, '#4040FF');
@@ -369,7 +366,7 @@ export class GameRenderer {
             this._drawTile(ctx, snake.position, '#0000AF');
         });
 
-
+        // Draw playback indicator
         if (playbackMode) {
             ctx.beginPath();
             ctx.moveTo(10, 10);
@@ -380,14 +377,19 @@ export class GameRenderer {
             ctx.fill();
         }
 
+        // Draw game over
         if (gameState.gameOver) {
             const fontSize = this._boardHeight / 10;
-            ctx.font=`Bold ${fontSize}pt Georgia`;
+            ctx.font = `Bold ${fontSize}px Georgia`;
+            const text = "Game Over!";
+            const measurement = ctx.measureText(text);
+            const x = (this._canvasWidth - measurement.width) / 2;
+            const y = (this._canvasHeight - fontSize) / 2;
+
             ctx.fillStyle = 'black';
+            ctx.fillText(text, x, y);
             ctx.strokeStyle = 'white';
-            const measurement = ctx.measureText("Game Over!");
-            ctx.fillText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - fontSize) / 2);
-            ctx.strokeText("Game Over!",(this._canvasWidth - measurement.width) / 2, (this._canvasHeight - fontSize) / 2);
+            ctx.strokeText(text, x, y);
         }
     }
 }

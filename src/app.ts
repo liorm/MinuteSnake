@@ -1,28 +1,31 @@
-import {GameEngine} from "./game-engine";
-import * as $ from 'jquery';
+import { GameEngine } from "./game-engine.js";
 
-// Start game engine
-$(() => {
-    const canvas: JQuery<HTMLCanvasElement> = $("#canvas");
-    const wnd = $(window);
-    let gameEngine: GameEngine;
+class GameApp {
+    private gameEngine: GameEngine | null = null;
 
-    function tryCreateGameEngine() {
-        if (gameEngine) {
-            return;
-        }
-
-        const tmpCanvas = canvas.get(0);
-        if (tmpCanvas.getContext != null) {
-            const ctx = tmpCanvas.getContext('2d')!;
-            gameEngine = new GameEngine(wnd, canvas, ctx);
-            gameEngine.start();
-            return;
-        }
-
-        // Retry
-        setTimeout(tryCreateGameEngine, 100);
+    constructor() {
+        window.addEventListener('DOMContentLoaded', () => this.initialize());
     }
 
-    tryCreateGameEngine();
-});
+    private initialize(): void {
+        const canvas = document.querySelector<HTMLCanvasElement>('#canvas');
+        
+        if (!canvas) {
+            console.error('Canvas element not found');
+            return;
+        }
+
+        const context = canvas.getContext('2d');
+        
+        if (!context) {
+            console.error('Could not get 2D context');
+            return;
+        }
+
+        this.gameEngine = new GameEngine(window, canvas, context);
+        this.gameEngine.start();
+    }
+}
+
+// Initialize the game
+new GameApp();

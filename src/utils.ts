@@ -4,9 +4,8 @@ export class Vector {
 
     constructor(v: Vector);
     constructor(x: number, y: number);
-    constructor(vx, y?) {
-        // VECTOR SYNTAX
-        if (arguments.length === 1) {
+    constructor(vx: Vector | number, y?: number) {
+        if (vx instanceof Vector) {
             this.x = vx.x;
             this.y = vx.y;
         } else {
@@ -15,52 +14,49 @@ export class Vector {
         }
     }
 
-    equals(v: Vector | null | undefined);
-    equals(x: number, y: number);
-    equals(vx, y?) {
-        if (vx === undefined || vx === null)
+    equals(v: Vector | null | undefined): boolean;
+    equals(x: number, y: number): boolean;
+    equals(vx: Vector | number | null | undefined, y?: number): boolean {
+        if (vx === undefined || vx === null) {
             return false;
+        }
 
-        // VECTOR SYNTAX
-        if (arguments.length === 1) {
+        if (vx instanceof Vector) {
             return this.x === vx.x && this.y === vx.y;
         } else {
             return this.x === vx && this.y === y;
         }
     }
 
-    clone() {
+    clone(): Vector {
         return new Vector(this);
     }
 
-    add(v: Vector);
-    add(x: number, y: number);
-    add(vx, y?) {
-        // VECTOR SYNTAX
-        if (arguments.length === 1) {
+    add(v: Vector): Vector;
+    add(x: number, y: number): Vector;
+    add(vx: Vector | number, y?: number): Vector {
+        if (vx instanceof Vector) {
             return new Vector(this.x + vx.x, this.y + vx.y);
         } else {
-            return new Vector(this.x + vx, this.y + y);
+            return new Vector(this.x + vx, this.y + (y || 0));
         }
     }
 
-    sub(v: Vector);
-    sub(x: number, y: number);
-    sub(vx, y?) {
-        // VECTOR SYNTAX
-        if (arguments.length === 1) {
-            return this.add(-vx.x, -vx.y);
+    sub(v: Vector): Vector;
+    sub(x: number, y: number): Vector;
+    sub(vx: Vector | number, y?: number): Vector {
+        if (vx instanceof Vector) {
+            return this.add(new Vector(-vx.x, -vx.y));
         } else {
-            return this.add(-vx, -y);
+            return this.add(-vx, -(y || 0));
         }
     }
 
-    mul(scalar: number) {
+    mul(scalar: number): Vector {
         return new Vector(this.x * scalar, this.y * scalar);
     }
 
-    invert() {
+    invert(): Vector {
         return this.mul(-1);
     }
 }
-

@@ -1,13 +1,13 @@
-import {EDirection, GameInput, GameLogic, GameRenderer, IGameEventInput, IGameStage, IGameState} from './game-logic';
-import {Vector} from "./utils";
+import {EDirection, GameInput, GameLogic, GameRenderer, IGameEventInput, IGameStage, IGameState} from './game-logic.js';
+import {Vector} from "./utils.js";
 
 abstract class GameHandlerBase {
     abstract get gameStage(): IGameStage;
     abstract get state(): IGameState;
     abstract get savedInputs(): IGameEventInput[];
     abstract get isDone(): boolean;
-    abstract advanceTime(duration: number);
-    abstract performInput(input: GameInput);
+    abstract advanceTime(duration: number): void;
+    abstract performInput(input: GameInput): void;
 }
 
 class LiveHandler extends GameHandlerBase {
@@ -25,33 +25,31 @@ class LiveHandler extends GameHandlerBase {
         this.savedInputs = savedInputs || [];
         this._gameLogic = new GameLogic(this._gameStage);
 
-        // FF time.
         if (this.savedInputs.length > 0) {
-            for (let i = 0; i < this.savedInputs.length; ++i) {
-                this._gameLogic.advanceTime(this.savedInputs[i].eventTime - this._gameLogic.totalDuration);
-                this._gameLogic.input(this.savedInputs[i].gameInput);
+            for (const savedInput of this.savedInputs) {
+                this._gameLogic.advanceTime(savedInput.eventTime - this._gameLogic.totalDuration);
+                this._gameLogic.input(savedInput.gameInput);
             }
         }
 
-        // Start listen AFTER inputing existing events
         this._gameLogic.onInputCallback = (e) => this._onGameInput(e);
     }
 
-    advanceTime(duration: number) {
+    advanceTime(duration: number): void {
         this._gameLogic.advanceTime(duration);
     }
 
-    get isDone() { return false; }
+    get isDone(): boolean { return false; }
 
     get state(): IGameState {
         return this._gameLogic.state;
     }
 
-    private _onGameInput(e) {
+    private _onGameInput(e: IGameEventInput): void {
         this.savedInputs.push(e);
     }
 
-    performInput(input: GameInput) {
+    performInput(input: GameInput): void {
         this._gameLogic.input(input);
     }
 }
@@ -72,18 +70,15 @@ class PlaybackHandler extends GameHandlerBase {
         this._inputIndex = 0;
     }
 
-    get isDone() { return this._inputIndex >= this.savedInputs.length; }
+    get isDone(): boolean { return this._inputIndex >= this.savedInputs.length; }
 
-    advanceTime(duration: number) {
+    advanceTime(duration: number): void {
         if (this._inputIndex >= this.savedInputs.length) {
             return;
         }
 
-        while (duration > 0)
-        {
+        while (duration > 0) {
             let newPlayedDuration = this._gameLogic.totalDuration + duration;
-
-            // For playback mode, advance until the next input time.
             const nextInput = this.savedInputs[this._inputIndex];
 
             if (newPlayedDuration >= nextInput.eventTime) {
@@ -92,7 +87,7 @@ class PlaybackHandler extends GameHandlerBase {
 
             this._gameLogic.advanceTime(newPlayedDuration - this._gameLogic.totalDuration);
 
-                if (this._gameLogic.totalDuration >= nextInput.eventTime) {
+            if (this._gameLogic.totalDuration >= nextInput.eventTime) {
                 this._gameLogic.input(nextInput.gameInput);
                 ++this._inputIndex;
             }
@@ -105,89 +100,82 @@ class PlaybackHandler extends GameHandlerBase {
         return this._gameLogic.state;
     }
 
-    performInput(input: GameInput) {
-        // Ignore inputs.
+    performInput(_input: GameInput): void {
+        // Ignore inputs in playback mode
     }
 }
 
 export class GameEngine {
-    private _gameRenderer: GameRenderer;
-    private _handler: GameHandlerBase;
-
-    private _lastEngineTime: number;
+    private _gameRenderer!: GameRenderer; // Will be initialized in start()
+    private _handler!: GameHandlerBase; // Will be initialized in start()
+    private _lastEngineTime!: number; // Will be initialized in start()
     private _isPlaybackMode = false;
 
     constructor(
-        private wnd: JQuery<Window>,
-        private canvas: JQuery<HTMLCanvasElement>,
+        private window: Window,
+        private canvas: HTMLCanvasElement,
         private ctx: CanvasRenderingContext2D
-    ) {
-    }
+    ) {}
 
-    start() {
+    start(): void {
         this._gameRenderer = new GameRenderer();
-
         this._restartLiveMode();
         this._initListeners();
         this._updateCanvasDimensions();
         this._timeout();
     }
 
-    private _initListeners() {
-        this.wnd.on('resize', () => this._updateCanvasDimensions()).on('keydown', (e) => this._onKeyDown(e));
+    private _initListeners(): void {
+        this.window.addEventListener('resize', () => this._updateCanvasDimensions());
+        this.window.addEventListener('keydown', (e) => this._onKeyDown(e));
     }
 
-    private _onKeyDown(event) {
+    private _onKeyDown(event: KeyboardEvent): void {
         if (event.defaultPrevented) {
-            return; // Do nothing if the event was already processed
+            return;
         }
 
-        if (event.key === 'P' || event.key === 'p') {
+        if (event.key.toLowerCase() === 'p') {
             if (!this._isPlaybackMode) {
                 this._enterPlaybackMode();
             } else {
                 this._resumeLiveMode();
             }
-        } else if ( event.key ==='n' || event.key === 'N' ) {
+        } else if (event.key.toLowerCase() === 'n') {
             this._restartLiveMode();
-        } else if ( event.key ==='+' ) {
+        } else if (event.key === '+') {
             this._performInput({
                 inputType: 'speed',
                 speedIncrement: 1,
             });
-        } else if ( event.key ==='-' ) {
+        } else if (event.key === '-') {
             this._performInput({
                 inputType: 'speed',
                 speedIncrement: -1,
             });
         } else {
-            let newDirection;
+            let newDirection: EDirection;
             let snakeIdx = 1;
 
-            // noinspection FallThroughInSwitchStatementJS
-            switch (event.key) {
-                case "S":
-                case "s":
+            switch (event.key.toLowerCase()) {
+                case 's':
                     snakeIdx = 0;
-                case "ArrowDown":
+                case 'arrowdown':
                     newDirection = EDirection.DOWN;
                     break;
-                case "W":
-                case "w":
+                case 'w':
                     snakeIdx = 0;
-                case "ArrowUp":
+                case 'arrowup':
                     newDirection = EDirection.UP;
                     break;
-                case "A":
-                case "a":
+                case 'a':
                     snakeIdx = 0;
-                case "ArrowLeft":
+                case 'arrowleft':
                     newDirection = EDirection.LEFT;
                     break;
-                case "D":
-                case "d":
+                case 'd':
                     snakeIdx = 0;
-                case "ArrowRight":
+                case 'arrowright':
                     newDirection = EDirection.RIGHT;
                     break;
                 default:
@@ -196,40 +184,38 @@ export class GameEngine {
 
             this._performInput({
                 inputType: 'direction',
-                dir: newDirection,
-                snakeIdx: snakeIdx,
+                dir: newDirection!,
+                snakeIdx,
             });
         }
 
         event.preventDefault();
     }
 
-    private _updateCanvasDimensions() {
-        this.canvas.attr({
-            height: this.wnd.height(),
-            width: this.wnd.width()
-        });
+    private _updateCanvasDimensions(): void {
+        this.canvas.height = this.window.innerHeight;
+        this.canvas.width = this.window.innerWidth;
 
-        this._gameRenderer.onCanvasSizeChanged(this.canvas.width()!, this.canvas.height()!);
+        this._gameRenderer.onCanvasSizeChanged(this.canvas.width, this.canvas.height);
         this._draw();
     }
 
-    private _timeout() {
+    private _timeout(): void {
         this._update();
         this._draw();
-        setTimeout(() => this._timeout(), 30);
+        requestAnimationFrame(() => this._timeout());
     }
 
-    private _update() {
+    private _update(): void {
         this._advanceTimeToNow();
     }
 
-    private _performInput(input: GameInput) {
+    private _performInput(input: GameInput): void {
         this._advanceTimeToNow();
         this._handler.performInput(input);
     }
 
-    private _advanceTimeToNow() {
+    private _advanceTimeToNow(): void {
         const now = performance.now();
         const duration = now - this._lastEngineTime;
         this._handler.advanceTime(duration);
@@ -240,12 +226,12 @@ export class GameEngine {
         }
     }
 
-    private _restartLiveMode() {
+    private _restartLiveMode(): void {
         const x = 60, y = 40;
         const gameStage: IGameStage = {
             xTiles: x,
             yTiles: y,
-            seed: new Date().valueOf(),
+            seed: Date.now(),
             wallHoles: [
                 new Vector(0, y / 2),
                 new Vector(0, y / 2 + 1),
@@ -258,13 +244,13 @@ export class GameEngine {
                 new Vector(x / 2, y / 2 - 1),
                 new Vector(x / 2 - 1, y / 2),
             ],
-            snakes: [ {
+            snakes: [{
                 position: new Vector(4, 4),
                 direction: EDirection.RIGHT,
             }, {
                 position: new Vector(x - 4, y - 4),
                 direction: EDirection.LEFT,
-            } ],
+            }],
         };
 
         this._isPlaybackMode = false;
@@ -273,18 +259,18 @@ export class GameEngine {
         this._gameRenderer.initRenderer(this._handler.gameStage);
     }
 
-    private _resumeLiveMode() {
+    private _resumeLiveMode(): void {
         this._isPlaybackMode = false;
         this._handler = new LiveHandler(this._handler.gameStage, this._handler.savedInputs);
     }
 
-    private _enterPlaybackMode() {
+    private _enterPlaybackMode(): void {
         this._isPlaybackMode = true;
         this._handler = new PlaybackHandler(this._handler.gameStage, this._handler.savedInputs);
         this._lastEngineTime = performance.now();
     }
 
-    private _draw() {
+    private _draw(): void {
         this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
         this._gameRenderer.render(
             this.ctx,
