@@ -92,7 +92,29 @@ export class HumanActor implements IActor {
  * obstacles like walls, its own body, and other snakes.
  */
 export class AIActor implements IActor {
-  constructor(private snakeIdx: number) {}
+  constructor(
+    private snakeIdx: number,
+    private readonly safetyRadius: number = 1
+  ) {}
+
+  private isNearOtherSnake(
+    pos: Vector,
+    state: IGameState,
+    radius: number
+  ): boolean {
+    const otherSnakes = state.snakes.filter((_, idx) => idx !== this.snakeIdx);
+
+    for (const snake of otherSnakes) {
+      for (const tile of snake.tiles) {
+        const dx = Math.abs(pos.x - tile.x);
+        const dy = Math.abs(pos.y - tile.y);
+        if (dx <= radius && dy <= radius) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   onStateUpdate(state: IGameState): GameInput | null {
     const snake = state.snakes[this.snakeIdx];
@@ -135,7 +157,12 @@ export class AIActor implements IActor {
     // Try each move in priority order
     for (const dir of moves) {
       const nextPos = this.getNextPosition(snake.position, dir, state);
-      if (!obstacles.has(`${nextPos.x},${nextPos.y}`)) {
+
+      // Check if move is safe (no obstacles and not too close to other snakes)
+      if (
+        !obstacles.has(`${nextPos.x},${nextPos.y}`) &&
+        !this.isNearOtherSnake(nextPos, state, this.safetyRadius)
+      ) {
         return {
           inputType: 'direction',
           dir,
@@ -144,11 +171,36 @@ export class AIActor implements IActor {
       }
     }
 
-    // If no good moves found, just continue in current direction
+    // If no good moves found, try to find any safe move that avoids other snakes
+    const allDirections = [
+      EDirection.UP,
+      EDirection.RIGHT,
+      EDirection.DOWN,
+      EDirection.LEFT,
+    ];
+    for (const dir of allDirections) {
+      const nextPos = this.getNextPosition(snake.position, dir, state);
+      if (
+        !obstacles.has(`${nextPos.x},${nextPos.y}`) &&
+        !this.isNearOtherSnake(nextPos, state, 2)
+      ) {
+        return {
+          inputType: 'direction',
+          dir,
+          snakeIdx: this.snakeIdx,
+        };
+      }
+    }
+
+    // If still no safe moves found, just continue in current direction
     return null;
   }
 
-  private getNextPosition(pos: Vector, dir: EDirection, state: IGameState): Vector {
+  private getNextPosition(
+    pos: Vector,
+    dir: EDirection,
+    state: IGameState
+  ): Vector {
     let x = pos.x;
     let y = pos.y;
 
