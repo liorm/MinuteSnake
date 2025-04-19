@@ -1,5 +1,5 @@
-import { IGameOptions, IGameState } from './game-logic';
-import { Vector } from './utils';
+import { IGameOptions, IGameState } from './backend/game-logic';
+import { Vector } from './backend/utils';
 
 /**
  * Defines the visual style for a game tile, supporting both

@@ -11,7 +11,7 @@ export default [
       parser,
       parserOptions: {
         ecmaVersion: 'latest',
-        sourceType: 'module'
+        sourceType: 'module',
       },
       globals: {
         window: 'readonly',
@@ -22,26 +22,29 @@ export default [
         requestAnimationFrame: 'readonly',
         performance: 'readonly',
         console: 'readonly',
-        Window: 'readonly'
-      }
+        Window: 'readonly',
+      },
     },
     plugins: {
-      '@typescript-eslint': tseslint
+      '@typescript-eslint': tseslint,
     },
     rules: {
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/explicit-function-return-type': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', { 
-        'argsIgnorePattern': '^_',
-        'varsIgnorePattern': '^_'
-      }],
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'no-fallthrough': 'off',
-      'no-unused-vars': 'off' // Using @typescript-eslint/no-unused-vars instead
-    }
+      'no-unused-vars': 'off', // Using @typescript-eslint/no-unused-vars instead
+    },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', 'coverage/**']
+    ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
   },
-  prettier
+  prettier,
 ];
