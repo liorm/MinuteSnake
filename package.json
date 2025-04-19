@@ -4,14 +4,16 @@
   "description": "Modern Snake game implementation",
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "tsc --watch",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
+    "build": "node build.js",
     "serve": "http-server ."
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "esbuild": "^0.20.0",
     "http-server": "^14.1.1",
-    "@types/seedrandom": "^3.0.8"
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0"
   },
   "dependencies": {
     "seedrandom": "^3.0.5"

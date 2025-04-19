@@ -64,7 +64,7 @@ export interface IGameInputSpeed {
 export type GameInput = IGameInputDirection | IGameInputSpeed;
 
 export class GameLogic {
-    private _prng: seedrandom.PRNG;
+    private _prng: () => number;
     private _state: IGameState;
     private _pendingDuration: number = 0;
     private _totalDuration: number = 0;
