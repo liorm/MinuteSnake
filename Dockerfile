@@ -1,22 +1,17 @@
-FROM node AS build
+FROM node:20 AS build
 
-RUN npm install -g yarn typescript
+# Install dependencies
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
 
-COPY package* /app/
-COPY yarn* /app/
-WORKDIR /app/
-RUN yarn
+# Build the application
+COPY . ./
+RUN npm run build
 
-COPY tsconfig* /app/
-COPY src /app/
-WORKDIR /app/
-RUN tsc --build
+FROM nginx:1.23 AS final
 
-
-FROM nginx:stable AS final
-
-RUN ln -sf /usr/share/nginx/html /var/www
-
-COPY --from=build /app/scripts/ /var/www/scripts/
-COPY index.html /var/www/
-COPY style.css  /var/www/
+# Copy build artifacts
+COPY --from=build /app/dist/ /usr/share/nginx/html/dist/
+COPY index.html /usr/share/nginx/html/
+COPY style.css /usr/share/nginx/html/
