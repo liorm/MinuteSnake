@@ -17,12 +17,17 @@ jobs:
           npm install
           npm run build
 
+      - name: Prepare Deploy Directory 🔨
+        run: |
+          mkdir deploy
+          cp index.html deploy/
+          cp style.css deploy/
+          cp -r dist deploy/
+
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: gh-pages
-          FOLDER: dist
-          EXTRA_FILES: |
-            index.html
-            style.css
+          FOLDER: deploy
+          CLEAN: true # Automatically remove deleted files from the deploy branch
