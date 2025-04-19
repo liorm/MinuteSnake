@@ -1,4 +1,5 @@
 import { EDirection, GameInput, IGameState } from './backend/game-logic.js';
+import { Vector } from './backend/utils.js';
 
 /**
  * There are two types of actors:
@@ -83,5 +84,95 @@ export class HumanActor implements IActor {
     const input = this.pendingInput;
     this.pendingInput = null;
     return input;
+  }
+}
+
+/**
+ * AI-controlled actor that moves the snake toward the apple while avoiding
+ * obstacles like walls, its own body, and other snakes.
+ */
+export class AIActor implements IActor {
+  constructor(private snakeIdx: number) {}
+
+  onStateUpdate(state: IGameState): GameInput | null {
+    const snake = state.snakes[this.snakeIdx];
+    const apple = state.applePos;
+
+    // If no apple or game is over, do nothing
+    if (!apple || state.gameOver) {
+      return null;
+    }
+
+    // Get all obstacles to avoid (walls, snake bodies)
+    const obstacles = new Set<string>();
+    state.blocks.forEach(block => obstacles.add(`${block.x},${block.y}`));
+    state.snakes.forEach(s => {
+      s.tiles.forEach(tile => obstacles.add(`${tile.x},${tile.y}`));
+    });
+
+    // Calculate direction to apple considering board wrapping
+    const dx = apple.x - snake.position.x;
+    const dy = apple.y - snake.position.y;
+
+    // Possible moves in order of priority based on apple direction
+    const moves: EDirection[] = [];
+
+    // Prioritize horizontal or vertical movement based on distance
+    if (Math.abs(dx) > Math.abs(dy)) {
+      // Prioritize horizontal movement
+      if (dx > 0) moves.push(EDirection.RIGHT);
+      else moves.push(EDirection.LEFT);
+      if (dy > 0) moves.push(EDirection.UP);
+      else moves.push(EDirection.DOWN);
+    } else {
+      // Prioritize vertical movement
+      if (dy > 0) moves.push(EDirection.UP);
+      else moves.push(EDirection.DOWN);
+      if (dx > 0) moves.push(EDirection.RIGHT);
+      else moves.push(EDirection.LEFT);
+    }
+
+    // Try each move in priority order
+    for (const dir of moves) {
+      const nextPos = this.getNextPosition(snake.position, dir, state);
+      if (!obstacles.has(`${nextPos.x},${nextPos.y}`)) {
+        return {
+          inputType: 'direction',
+          dir,
+          snakeIdx: this.snakeIdx,
+        };
+      }
+    }
+
+    // If no good moves found, just continue in current direction
+    return null;
+  }
+
+  private getNextPosition(pos: Vector, dir: EDirection, state: IGameState): Vector {
+    let x = pos.x;
+    let y = pos.y;
+
+    switch (dir) {
+      case EDirection.UP:
+        y += 1;
+        break;
+      case EDirection.DOWN:
+        y -= 1;
+        break;
+      case EDirection.LEFT:
+        x -= 1;
+        break;
+      case EDirection.RIGHT:
+        x += 1;
+        break;
+    }
+
+    // Handle wrapping
+    if (x < 0) x = state.blocks.length - 2;
+    if (y < 0) y = state.blocks.length - 2;
+    if (x > state.blocks.length - 2) x = 0;
+    if (y > state.blocks.length - 2) y = 0;
+
+    return new Vector(x, y);
   }
 }

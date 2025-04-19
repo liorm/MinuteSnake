@@ -1,6 +1,8 @@
 import { EDirection, GameInput, IGameStage } from './backend/game-logic.js';
 import { IActor, HumanActor } from './actors.js';
 import { GameRenderer } from './game-renderer.js';
+
+const MAX_INPUT_ITERATIONS = 10;
 import {
   GameHandlerBase,
   LiveHandler,
@@ -98,14 +100,20 @@ export class GameEngine {
 
   private _update(): void {
     this._advanceTimeToNow();
-    
+
     // Let actors respond to state changes
-    for (const actor of this._actors) {
-      const input = actor.onStateUpdate(this._handler.state);
-      if (input) {
-        this._performInput(input);
+    let hasInput = false;
+    let iterations = 0;
+    do {
+      for (const actor of this._actors) {
+        const input = actor.onStateUpdate(this._handler.state);
+        if (input) {
+          this._performInput(input);
+          hasInput = true;
+        }
       }
-    }
+      iterations++;
+    } while (hasInput && iterations < MAX_INPUT_ITERATIONS);
   }
 
   private _performInput(input: GameInput): void {
@@ -150,6 +158,10 @@ export class GameEngine {
         },
         {
           position: new Vector(x - 4, y - 4),
+          direction: EDirection.LEFT,
+        },
+        {
+          position: new Vector(x - 10, y - 10),
           direction: EDirection.LEFT,
         },
       ],
