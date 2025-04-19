@@ -94,7 +94,7 @@ export class HumanActor implements IActor {
 export class AIActor implements IActor {
   constructor(
     private snakeIdx: number,
-    private readonly safetyRadius: number = 2
+    private readonly safetyRadius: number = 3
   ) {}
 
   private isNearOtherSnake(
