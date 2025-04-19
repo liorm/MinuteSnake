@@ -2,11 +2,11 @@ import {
   EDirection,
   GameInput,
   GameLogic,
-  GameRenderer,
   IGameEventInput,
   IGameStage,
   IGameState,
 } from './game-logic.js';
+import { GameRenderer } from './game-renderer.js';
 import { Vector } from './utils.js';
 
 abstract class GameHandlerBase {
@@ -44,7 +44,8 @@ class LiveHandler extends GameHandlerBase {
       }
     }
 
-    this._gameLogic.onInputCallback = (e: IGameEventInput): void => this._onGameInput(e);
+    this._gameLogic.onInputCallback = (e: IGameEventInput): void =>
+      this._onGameInput(e);
   }
 
   advanceTime(duration: number): void {
