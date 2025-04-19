@@ -1,4 +1,5 @@
 import { GameEngine } from './game-engine.js';
+import { HumanActor } from './actors.js';
 
 /**
  * Main application entry point that bootstraps the game.
@@ -32,6 +33,26 @@ class GameApp {
     }
 
     this.gameEngine = new GameEngine(window, canvas, context);
+    
+    // Create two human actors with their key mappings
+    const player1 = new HumanActor(0, {
+      up: 'w',
+      down: 's',
+      left: 'a',
+      right: 'd'
+    });
+
+    const player2 = new HumanActor(1, {
+      up: 'arrowup',
+      down: 'arrowdown',
+      left: 'arrowleft',
+      right: 'arrowright'
+    });
+
+    // Add actors to the game engine
+    this.gameEngine.addActor(player1);
+    this.gameEngine.addActor(player2);
+
     this.gameEngine.start();
   }
 }

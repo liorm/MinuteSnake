@@ -1,4 +1,5 @@
 import { EDirection, GameInput, IGameStage } from './backend/game-logic.js';
+import { IActor, HumanActor } from './actors.js';
 import { GameRenderer } from './game-renderer.js';
 import {
   GameHandlerBase,
@@ -20,6 +21,7 @@ export class GameEngine {
   private _handler!: GameHandlerBase; // Will be initialized in start()
   private _lastEngineTime!: number; // Will be initialized in start()
   private _isPlaybackMode = false;
+  private _actors: IActor[] = [];
 
   constructor(
     private window: Window,
@@ -66,39 +68,12 @@ export class GameEngine {
         speedIncrement: -1,
       });
     } else {
-      let newDirection: EDirection;
-      let snakeIdx = 1;
-
-      switch (event.key.toLowerCase()) {
-        case 's':
-          snakeIdx = 0;
-        case 'arrowdown':
-          newDirection = EDirection.DOWN;
-          break;
-        case 'w':
-          snakeIdx = 0;
-        case 'arrowup':
-          newDirection = EDirection.UP;
-          break;
-        case 'a':
-          snakeIdx = 0;
-        case 'arrowleft':
-          newDirection = EDirection.LEFT;
-          break;
-        case 'd':
-          snakeIdx = 0;
-        case 'arrowright':
-          newDirection = EDirection.RIGHT;
-          break;
-        default:
-          return;
+      // Route key input to the actors
+      for (const actor of this._actors) {
+        if (actor instanceof HumanActor) {
+          actor.handleKeyInput(event);
+        }
       }
-
-      this._performInput({
-        inputType: 'direction',
-        dir: newDirection!,
-        snakeIdx,
-      });
     }
 
     event.preventDefault();
@@ -123,6 +98,14 @@ export class GameEngine {
 
   private _update(): void {
     this._advanceTimeToNow();
+    
+    // Let actors respond to state changes
+    for (const actor of this._actors) {
+      const input = actor.onStateUpdate(this._handler.state);
+      if (input) {
+        this._performInput(input);
+      }
+    }
   }
 
   private _performInput(input: GameInput): void {
@@ -202,5 +185,14 @@ export class GameEngine {
       this._handler.state,
       this._isPlaybackMode
     );
+  }
+
+  /**
+   * Add an actor to the game. Actors will receive state updates
+   * and can provide inputs to control game entities.
+   * @param actor The actor to add
+   */
+  addActor(actor: IActor): void {
+    this._actors.push(actor);
   }
 }
