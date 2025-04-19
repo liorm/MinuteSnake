@@ -116,11 +116,22 @@ export class GameRenderer {
     }
 
     // Draw snakes
-    gameState.snakes.forEach(snake => {
+    const snakeColors = ['#4040FF', '#FF4040', '#40FF40', '#FFFF40', '#FF40FF', '#40FFFF'];
+    const darkenedSnakeColors = snakeColors.map(color => {
+      const num = parseInt(color.slice(1), 16);
+      const r = Math.max((num >> 16) - 40, 0);
+      const g = Math.max(((num >> 8) & 0x00FF) - 40, 0);
+      const b = Math.max((num & 0x0000FF) - 40, 0);
+      return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+    });
+
+    gameState.snakes.forEach((snake, index) => {
+      const bodyColor = snakeColors[index % snakeColors.length];
+      const headColor = darkenedSnakeColors[index % darkenedSnakeColors.length];
       snake.tiles.forEach(tile => {
-        this._drawTile(ctx, tile, '#4040FF');
+        this._drawTile(ctx, tile, bodyColor);
       });
-      this._drawTile(ctx, snake.position, '#0000AF');
+      this._drawTile(ctx, snake.position, headColor);
     });
 
     // Draw playback indicator
