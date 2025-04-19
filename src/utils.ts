@@ -1,3 +1,14 @@
+/**
+ * A 2D vector class providing essential operations for game position calculations.
+ * Used throughout the game for snake positions, apple placement, and collision detection.
+ * Supports vector arithmetic, comparison, and transformation operations.
+ *
+ * Example:
+ * ```typescript
+ * const pos = new Vector(10, 20);
+ * const newPos = pos.add(new Vector(5, 0)); // Move right by 5
+ * ```
+ */
 export class Vector {
   x: number;
   y: number;
@@ -14,6 +25,10 @@ export class Vector {
     }
   }
 
+  /**
+   * Checks if this vector equals another vector or coordinate pair.
+   * Used for collision detection and position comparison.
+   */
   equals(v: Vector | null | undefined): boolean;
   equals(x: number, y: number): boolean;
   equals(vx: Vector | number | null | undefined, y?: number): boolean {
@@ -28,10 +43,19 @@ export class Vector {
     }
   }
 
+  /**
+   * Creates a new Vector with the same coordinates.
+   * Useful when you need a copy that won't be modified by reference.
+   */
   clone(): Vector {
     return new Vector(this);
   }
 
+  /**
+   * Adds another vector or coordinate pair to this vector.
+   * Returns a new Vector without modifying the original.
+   * Used for calculating new positions and offsets.
+   */
   add(v: Vector): Vector;
   add(x: number, y: number): Vector;
   add(vx: Vector | number, y?: number): Vector {
@@ -42,6 +66,11 @@ export class Vector {
     }
   }
 
+  /**
+   * Subtracts another vector or coordinate pair from this vector.
+   * Returns a new Vector without modifying the original.
+   * Used for calculating distances and relative positions.
+   */
   sub(v: Vector): Vector;
   sub(x: number, y: number): Vector;
   sub(vx: Vector | number, y?: number): Vector {
@@ -52,10 +81,18 @@ export class Vector {
     }
   }
 
+  /**
+   * Multiplies the vector by a scalar value.
+   * Used for scaling positions and directions.
+   */
   mul(scalar: number): Vector {
     return new Vector(this.x * scalar, this.y * scalar);
   }
 
+  /**
+   * Returns a new Vector with negated coordinates.
+   * Shorthand for multiplying by -1.
+   */
   invert(): Vector {
     return this.mul(-1);
   }
