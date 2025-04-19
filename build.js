@@ -6,12 +6,12 @@ await esbuild.build({
   outfile: 'dist/bundle.js',
   format: 'esm',
   platform: 'browser',
-  target: 'es2020',
+  target: 'es2021',
   sourcemap: true,
-  minify: true,
+  minify: false,
   loader: {
-    '.ts': 'ts'
-  }
+    '.ts': 'ts',
+  },
 });
 
 console.log('Build complete! ✨');

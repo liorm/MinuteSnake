@@ -7,11 +7,15 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "build": "node build.js",
-    "serve": "http-server ."
+    "serve": "http-server -c-1 .",
+    "format": "prettier --write \"**/*.{ts,js,json,html,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,html,css}\""
   },
   "devDependencies": {
+    "@types/seedrandom": "^3.0.0",
     "esbuild": "^0.20.0",
     "http-server": "^14.1.1",
+    "prettier": "^3.5.3",
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0"
   },
