@@ -180,7 +180,8 @@ export class GameLogic {
       return false;
     }
 
-    for (const snake of state.snakes) {
+    for (let i = 0; i < state.snakes.length; i++) {
+      const snake = state.snakes[i];
       if (snake.pendingDirs.length > 0) {
         snake.dir = snake.pendingDirs[0];
         snake.pendingDirs.splice(0, 1);
@@ -242,6 +243,16 @@ export class GameLogic {
 
       while (snake.tiles.length > snake.length) {
         snake.tiles.splice(0, 1);
+      }
+      // Check collision with other snakes
+      for (let j = 0; j < state.snakes.length; j++) {
+        if (i !== j) {
+          const otherSnake = state.snakes[j];
+          if (otherSnake.tiles.find(v => v.equals(newPosition))) {
+            state.gameOver = true;
+            return false;
+          }
+        }
       }
     }
 

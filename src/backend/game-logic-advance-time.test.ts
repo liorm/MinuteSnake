@@ -184,6 +184,38 @@ describe('GameLogic - Advance Time', () => {
       expect(game.state.gameOver).toBe(true);
     });
 
+    it('should detect collision between snakes', () => {
+      const stage: IGameStage = {
+        xTiles: 10,
+        yTiles: 10,
+        seed: 12345,
+        wallHoles: [],
+        blocks: [],
+        snakes: [
+          { position: new Vector(4, 4), direction: EDirection.RIGHT },
+          { position: new Vector(5, 4), direction: EDirection.LEFT },
+        ],
+      };
+
+      const game = new GameLogic(stage);
+
+      // Setup snake tiles
+      game.state.snakes[0].tiles = [
+        new Vector(4, 4),
+        new Vector(4, 5),
+      ];
+      game.state.snakes[1].tiles = [
+        new Vector(5, 4),
+        new Vector(4, 4), // Collision point
+      ];
+
+      // Advance time to trigger collision detection
+      game.advanceTime(100);
+
+      // Verify collision is detected
+      expect(game.state.gameOver).toBe(true);
+    });
+
     it('should stop further movement after collision', () => {
       const game = new GameLogic({
         ..._defaultStage,
