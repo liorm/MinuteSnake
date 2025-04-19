@@ -22,7 +22,7 @@ describe('Vector', () => {
       const v1 = new Vector(2, 3);
       const v2 = new Vector(2, 3);
       const v3 = new Vector(2, 4);
-      
+
       expect(v1.equals(v2)).toBe(true);
       expect(v1.equals(v3)).toBe(false);
     });
@@ -44,7 +44,7 @@ describe('Vector', () => {
     it('creates a new copy of the vector', () => {
       const v1 = new Vector(2, 3);
       const v2 = v1.clone();
-      
+
       expect(v2.x).toBe(2);
       expect(v2.y).toBe(3);
       expect(v2).not.toBe(v1); // Different instances
@@ -56,7 +56,7 @@ describe('Vector', () => {
       const v1 = new Vector(2, 3);
       const v2 = new Vector(1, 2);
       const result = v1.add(v2);
-      
+
       expect(result.x).toBe(3);
       expect(result.y).toBe(5);
     });
@@ -64,7 +64,7 @@ describe('Vector', () => {
     it('adds x,y coordinates', () => {
       const v = new Vector(2, 3);
       const result = v.add(1, 2);
-      
+
       expect(result.x).toBe(3);
       expect(result.y).toBe(5);
     });
@@ -75,7 +75,7 @@ describe('Vector', () => {
       const v1 = new Vector(2, 3);
       const v2 = new Vector(1, 2);
       const result = v1.sub(v2);
-      
+
       expect(result.x).toBe(1);
       expect(result.y).toBe(1);
     });
@@ -83,7 +83,7 @@ describe('Vector', () => {
     it('subtracts x,y coordinates', () => {
       const v = new Vector(2, 3);
       const result = v.sub(1, 2);
-      
+
       expect(result.x).toBe(1);
       expect(result.y).toBe(1);
     });
@@ -93,7 +93,7 @@ describe('Vector', () => {
     it('multiplies by scalar', () => {
       const v = new Vector(2, 3);
       const result = v.mul(2);
-      
+
       expect(result.x).toBe(4);
       expect(result.y).toBe(6);
     });
@@ -103,7 +103,7 @@ describe('Vector', () => {
     it('negates the coordinates', () => {
       const v = new Vector(2, 3);
       const result = v.invert();
-      
+
       expect(result.x).toBe(-2);
       expect(result.y).toBe(-3);
     });
