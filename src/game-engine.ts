@@ -9,6 +9,11 @@ import {
 import { GameRenderer } from './game-renderer.js';
 import { Vector } from './utils.js';
 
+/**
+ * Abstract base class defining the core game state management interface.
+ * Provides the foundation for both live gameplay and replay functionality
+ * through the LiveHandler and PlaybackHandler implementations.
+ */
 abstract class GameHandlerBase {
   abstract get gameStage(): IGameStage;
   abstract get state(): IGameState;
@@ -18,6 +23,14 @@ abstract class GameHandlerBase {
   abstract performInput(input: GameInput): void;
 }
 
+/**
+ * Manages live gameplay state and input handling.
+ * Maintains a record of player inputs for replay functionality
+ * while delegating game logic to the GameLogic class.
+ *
+ * Example: Used during active gameplay to process player movements
+ * and track game state changes.
+ */
 class LiveHandler extends GameHandlerBase {
   private _gameLogic: GameLogic;
   savedInputs: IGameEventInput[];
@@ -69,6 +82,13 @@ class LiveHandler extends GameHandlerBase {
   }
 }
 
+/**
+ * Handles replay functionality by playing back recorded game inputs.
+ * Processes saved inputs in sequence to recreate previous gameplay,
+ * ignoring new player inputs during playback.
+ *
+ * Example: Activated when player presses 'P' to review previous gameplay
+ */
 class PlaybackHandler extends GameHandlerBase {
   private _gameLogic: GameLogic;
   private _inputIndex: number;
@@ -126,6 +146,14 @@ class PlaybackHandler extends GameHandlerBase {
   }
 }
 
+/**
+ * Core game engine that coordinates rendering, input handling, and game state.
+ * Manages switching between live and playback modes, handles window/canvas
+ * setup, and maintains the game loop. Works with GameRenderer for visual output
+ * and interfaces with GameHandlerBase implementations for game state management.
+ *
+ * Example: The main engine instance created by GameApp that runs the entire game
+ */
 export class GameEngine {
   private _gameRenderer!: GameRenderer; // Will be initialized in start()
   private _handler!: GameHandlerBase; // Will be initialized in start()

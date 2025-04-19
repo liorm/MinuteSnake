@@ -5,11 +5,20 @@ function assertNever(x: never): never {
   throw new Error('Unexpected object: ' + x);
 }
 
+/**
+ * Represents a timestamped game input event used for replay functionality.
+ * Captures both the type of input and when it occurred during gameplay.
+ */
 export interface IGameEventInput {
   eventTime: number;
   gameInput: GameInput;
 }
 
+/**
+ * Represents cardinal directions for snake movement.
+ * Opposing directions have values that sum to 0, which is used
+ * to prevent 180-degree turns.
+ */
 export enum EDirection {
   UP = 1,
   RIGHT = 2,
@@ -17,12 +26,21 @@ export enum EDirection {
   DOWN = -1,
 }
 
+/**
+ * Basic game configuration options defining the playing field size
+ * and random number generation seed for deterministic gameplay.
+ */
 export interface IGameOptions {
   xTiles: number;
   yTiles: number;
   seed: number;
 }
 
+/**
+ * Complete game stage configuration including wall holes (portals),
+ * obstacle blocks, and initial snake positions/directions.
+ * Extends IGameOptions to include all elements needed for stage setup.
+ */
 export interface IGameStage extends IGameOptions {
   wallHoles: Vector[];
   blocks: Vector[];
@@ -34,6 +52,11 @@ export interface IGameStage extends IGameOptions {
   }[];
 }
 
+/**
+ * Represents the current state of a snake in the game.
+ * Tracks position, length, occupied tiles, current direction
+ * and queued direction changes.
+ */
 export interface IGameStateSnake {
   position: Vector;
   length: number;
@@ -42,6 +65,11 @@ export interface IGameStateSnake {
   pendingDirs: EDirection[];
 }
 
+/**
+ * Complete game state including all snakes, obstacles,
+ * apple position, game speed and win/loss condition.
+ * Used by both the game logic and renderer.
+ */
 export interface IGameState {
   blocks: Vector[];
   speed: number;
@@ -50,12 +78,21 @@ export interface IGameState {
   gameOver: boolean;
 }
 
+/**
+ * Direction change input for a specific snake.
+ * Used to queue new movement directions that will be applied
+ * on the next game step.
+ */
 export interface IGameInputDirection {
   inputType: 'direction';
   dir: EDirection;
   snakeIdx: number;
 }
 
+/**
+ * Speed adjustment input that modifies the game's
+ * update rate. Controls how frequently the game state advances.
+ */
 export interface IGameInputSpeed {
   inputType: 'speed';
   speedIncrement: number;
@@ -63,6 +100,21 @@ export interface IGameInputSpeed {
 
 export type GameInput = IGameInputDirection | IGameInputSpeed;
 
+/**
+ * Core game logic implementation handling snake movement, collisions,
+ * apple placement, and game state management. Uses seeded random number
+ * generation for deterministic apple placement, enabling replay functionality.
+ *
+ * Maintains game state including snake positions, apple location, blocks,
+ * and handles input processing for direction changes and speed adjustments.
+ *
+ * Example:
+ * ```typescript
+ * const gameLogic = new GameLogic(gameStage);
+ * gameLogic.input({ inputType: 'direction', dir: EDirection.RIGHT, snakeIdx: 0 });
+ * gameLogic.advanceTime(16); // Advance game by 16ms
+ * ```
+ */
 export class GameLogic {
   private _prng: () => number;
   private _state: IGameState;

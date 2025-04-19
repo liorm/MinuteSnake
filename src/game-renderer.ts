@@ -1,11 +1,30 @@
 import { IGameOptions, IGameState } from './game-logic';
 import { Vector } from './utils';
 
+/**
+ * Defines the visual style for a game tile, supporting both
+ * fill and optional stroke colors for various game elements
+ * like snakes, apples, and walls.
+ */
 export interface ITileStyle {
   fillStyle: string;
   strokeStyle?: string;
 }
 
+/**
+ * Handles all visual rendering aspects of the game using the HTML5 Canvas API.
+ * Manages responsive sizing of the game board, draws all game elements
+ * (snakes, apples, walls), and displays UI elements like the game over screen
+ * and playback indicator.
+ *
+ * Example:
+ * ```typescript
+ * const renderer = new GameRenderer();
+ * renderer.initRenderer(gameOptions);
+ * renderer.onCanvasSizeChanged(canvas.width, canvas.height);
+ * renderer.render(ctx, gameState, false);
+ * ```
+ */
 export class GameRenderer {
   private _paddingX: number = 0;
   private _paddingY: number = 0;
