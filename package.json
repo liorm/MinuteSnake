@@ -1,9 +1,38 @@
 {
+  "name": "minute-snake",
+  "version": "1.0.0",
+  "description": "Modern Snake game implementation",
+  "type": "module",
+  "scripts": {
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean",
+    "build": "node build.js",
+    "serve": "http-server -c-1 .",
+    "format": "prettier --write \"**/*.{ts,js,json,html,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,html,css}\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
   "devDependencies": {
-    "@types/jquery": "^3.3.22",
-    "@types/seedrandom": "^2.4.27"
+    "@eslint/js": "^9.25.0",
+    "@types/seedrandom": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.30.1",
+    "@typescript-eslint/parser": "^8.30.1",
+    "@vitest/coverage-v8": "^3.1.1",
+    "@vitest/ui": "^3.1.1",
+    "esbuild": "^0.20.0",
+    "eslint": "^9.25.0",
+    "eslint-config-prettier": "^10.1.2",
+    "http-server": "^14.1.1",
+    "prettier": "^3.5.3",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.1.1"
   },
   "dependencies": {
-    "requirejs": "^2.3.6"
+    "seedrandom": "^3.0.5"
   }
 }
