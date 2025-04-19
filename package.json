@@ -9,11 +9,18 @@
     "build": "node build.js",
     "serve": "http-server -c-1 .",
     "format": "prettier --write \"**/*.{ts,js,json,html,css}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,html,css}\""
+    "format:check": "prettier --check \"**/*.{ts,js,json,html,css}\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix"
   },
   "devDependencies": {
+    "@eslint/js": "^9.25.0",
     "@types/seedrandom": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.30.1",
+    "@typescript-eslint/parser": "^8.30.1",
     "esbuild": "^0.20.0",
+    "eslint": "^9.25.0",
+    "eslint-config-prettier": "^10.1.2",
     "http-server": "^14.1.1",
     "prettier": "^3.5.3",
     "rimraf": "^5.0.0",

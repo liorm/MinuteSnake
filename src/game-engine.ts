@@ -44,7 +44,7 @@ class LiveHandler extends GameHandlerBase {
       }
     }
 
-    this._gameLogic.onInputCallback = e => this._onGameInput(e);
+    this._gameLogic.onInputCallback = (e: IGameEventInput): void => this._onGameInput(e);
   }
 
   advanceTime(duration: number): void {
