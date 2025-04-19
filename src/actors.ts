@@ -94,7 +94,7 @@ export class HumanActor implements IActor {
 export class AIActor implements IActor {
   constructor(
     private snakeIdx: number,
-    private readonly safetyRadius: number = 1
+    private readonly safetyRadius: number = 2
   ) {}
 
   private isNearOtherSnake(
@@ -103,7 +103,6 @@ export class AIActor implements IActor {
     radius: number
   ): boolean {
     const otherSnakes = state.snakes.filter((_, idx) => idx !== this.snakeIdx);
-
     for (const snake of otherSnakes) {
       for (const tile of snake.tiles) {
         const dx = Math.abs(pos.x - tile.x);
@@ -114,6 +113,12 @@ export class AIActor implements IActor {
       }
     }
     return false;
+  }
+
+  private wouldCollideWithSelf(pos: Vector, state: IGameState): boolean {
+    const currentSnake = state.snakes[this.snakeIdx];
+    const bodyTiles = currentSnake.tiles.slice(1); // Exclude head
+    return bodyTiles.some(tile => tile.x === pos.x && tile.y === pos.y);
   }
 
   onStateUpdate(state: IGameState): GameInput | null {
@@ -158,10 +163,11 @@ export class AIActor implements IActor {
     for (const dir of moves) {
       const nextPos = this.getNextPosition(snake.position, dir, state);
 
-      // Check if move is safe (no obstacles and not too close to other snakes)
+      // Check if move is safe (no obstacles, not too close to other snakes, and won't hit own body)
       if (
         !obstacles.has(`${nextPos.x},${nextPos.y}`) &&
-        !this.isNearOtherSnake(nextPos, state, this.safetyRadius)
+        !this.isNearOtherSnake(nextPos, state, this.safetyRadius) &&
+        !this.wouldCollideWithSelf(nextPos, state)
       ) {
         return {
           inputType: 'direction',
@@ -182,7 +188,8 @@ export class AIActor implements IActor {
       const nextPos = this.getNextPosition(snake.position, dir, state);
       if (
         !obstacles.has(`${nextPos.x},${nextPos.y}`) &&
-        !this.isNearOtherSnake(nextPos, state, 2)
+        !this.isNearOtherSnake(nextPos, state, 2) &&
+        !this.wouldCollideWithSelf(nextPos, state)
       ) {
         return {
           inputType: 'direction',
