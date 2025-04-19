@@ -47,14 +47,10 @@ class GameApp {
       right: 'arrowright',
     });
 
-    // Create an AI actor as the second player
-    const ai1Player = new AIActor(1);
-    const ai2Player = new AIActor(2);
-
     // Add actors to the game engine
     this.gameEngine.addActor(player1);
-    this.gameEngine.addActor(ai1Player);
-    this.gameEngine.addActor(ai2Player);
+    this.gameEngine.addActor(new AIActor(1));
+    this.gameEngine.addActor(new AIActor(2));
 
     this.gameEngine.start();
   }
