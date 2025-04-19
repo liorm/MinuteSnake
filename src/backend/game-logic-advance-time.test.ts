@@ -131,6 +131,40 @@ describe('GameLogic - Advance Time', () => {
       testDirection(EDirection.LEFT, new Vector(0, 5), new Vector(10, 5));
       testDirection(EDirection.UP, new Vector(5, 10), new Vector(5, 0));
     });
+
+    it('should cover all directions and ensure no unexpected directions', () => {
+      const stage: IGameStage = {
+        xTiles: 10,
+        yTiles: 10,
+        seed: 12345,
+        wallHoles: [],
+        blocks: [],
+        snakes: [{ position: new Vector(4, 4), direction: EDirection.RIGHT }],
+      };
+
+      const game = new GameLogic(stage);
+
+      // Test all valid directions
+      const directions = [
+        EDirection.UP,
+        EDirection.DOWN,
+        EDirection.LEFT,
+        EDirection.RIGHT,
+      ];
+      directions.forEach(dir => {
+        game.state.snakes[0].dir = dir;
+        game.state.snakes[0].position = new Vector(4, 4); // Reset position
+        game.state.snakes[0].tiles = [new Vector(4, 4)]; // Reset tiles
+        game.state.gameOver = false; // Reset gameOver state
+        game.advanceTime(100);
+        expect(game.state.gameOver).toBe(false);
+      });
+
+      // Test invalid direction to trigger assertNever
+      // @ts-expect-error: Simulate invalid direction
+      game.state.snakes[0].dir = 999;
+      expect(() => game.advanceTime(100)).toThrow();
+    });
   });
 
   describe('Collisions', () => {
@@ -200,10 +234,7 @@ describe('GameLogic - Advance Time', () => {
       const game = new GameLogic(stage);
 
       // Setup snake tiles
-      game.state.snakes[0].tiles = [
-        new Vector(4, 4),
-        new Vector(4, 5),
-      ];
+      game.state.snakes[0].tiles = [new Vector(4, 4), new Vector(4, 5)];
       game.state.snakes[1].tiles = [
         new Vector(5, 4),
         new Vector(4, 4), // Collision point
@@ -214,6 +245,33 @@ describe('GameLogic - Advance Time', () => {
 
       // Verify collision is detected
       expect(game.state.gameOver).toBe(true);
+    });
+
+    it('should terminate the game before snake overlaps with colliding snake', () => {
+      const stage: IGameStage = {
+        xTiles: 11,
+        yTiles: 11,
+        seed: 12345,
+        wallHoles: [
+          new Vector(5, 0),
+          new Vector(5, 10),
+          new Vector(0, 5),
+          new Vector(10, 5),
+        ],
+        blocks: [],
+        snakes: [
+          { position: new Vector(2, 5), direction: EDirection.RIGHT },
+          { position: new Vector(6, 5), direction: EDirection.LEFT },
+        ],
+      };
+
+      const game = new GameLogic(stage);
+
+      game.advanceTime(1000);
+
+      // Verify game terminates before overlap
+      expect(game.state.gameOver).toBe(true);
+      expect(game.state.snakes[0].position).toEqual(new Vector(4, 5)); // Should not move to colliding position
     });
 
     it('should stop further movement after collision', () => {

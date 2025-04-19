@@ -205,7 +205,18 @@ export class GameLogic {
           return assertNever(snake.dir);
       }
 
-      let newPosition = snake.position.add(direction);
+      const newPosition = snake.position.add(direction);
+
+      // Check collision with other snakes before updating position
+      for (let j = 0; j < state.snakes.length; j++) {
+        if (i !== j) {
+          const otherSnake = state.snakes[j];
+          if (otherSnake.tiles.find(v => v.equals(newPosition))) {
+            state.gameOver = true;
+            return false;
+          }
+        }
+      }
 
       // Hit the wall?
       if (state.blocks.find(v => v.equals(newPosition))) {
@@ -244,7 +255,7 @@ export class GameLogic {
       while (snake.tiles.length > snake.length) {
         snake.tiles.splice(0, 1);
       }
-      // Check collision with other snakes
+      // Check collision with other snakes before updating position
       for (let j = 0; j < state.snakes.length; j++) {
         if (i !== j) {
           const otherSnake = state.snakes[j];
@@ -254,6 +265,9 @@ export class GameLogic {
           }
         }
       }
+
+      snake.position = newPosition;
+      snake.tiles.push(newPosition);
     }
 
     if (!state.applePos) {
