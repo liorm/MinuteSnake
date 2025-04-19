@@ -24,10 +24,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
 // node_modules/seedrandom/lib/alea.js
 var require_alea = __commonJS({
@@ -76,8 +73,7 @@ var require_alea = __commonJS({
         };
         prng.quick = prng;
         if (state) {
-          if (typeof state == "object")
-            copy(state, xg);
+          if (typeof state == "object") copy(state, xg);
           prng.state = function() {
             return copy(xg, {});
           };
@@ -168,8 +164,7 @@ var require_xor128 = __commonJS({
         prng.int32 = xg.next;
         prng.quick = prng;
         if (state) {
-          if (typeof state == "object")
-            copy(state, xg);
+          if (typeof state == "object") copy(state, xg);
           prng.state = function() {
             return copy(xg, {});
           };
@@ -249,8 +244,7 @@ var require_xorwow = __commonJS({
         prng.int32 = xg.next;
         prng.quick = prng;
         if (state) {
-          if (typeof state == "object")
-            copy(state, xg);
+          if (typeof state == "object") copy(state, xg);
           prng.state = function() {
             return copy(xg, {});
           };
@@ -310,14 +304,10 @@ var require_xorshift7 = __commonJS({
               X[j & 7] = X[j & 7] << 15 ^ seed2.charCodeAt(j) + X[j + 1 & 7] << 13;
             }
           }
-          while (X.length < 8)
-            X.push(0);
-          for (j = 0; j < 8 && X[j] === 0; ++j)
-            ;
-          if (j == 8)
-            w = X[7] = -1;
-          else
-            w = X[j];
+          while (X.length < 8) X.push(0);
+          for (j = 0; j < 8 && X[j] === 0; ++j) ;
+          if (j == 8) w = X[7] = -1;
+          else w = X[j];
           me2.x = X;
           me2.i = 0;
           for (j = 256; j > 0; --j) {
@@ -332,8 +322,7 @@ var require_xorshift7 = __commonJS({
         return t;
       }
       function impl(seed, opts) {
-        if (seed == null)
-          seed = +/* @__PURE__ */ new Date();
+        if (seed == null) seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -346,8 +335,7 @@ var require_xorshift7 = __commonJS({
         prng.int32 = xg.next;
         prng.quick = prng;
         if (state) {
-          if (state.x)
-            copy(state, xg);
+          if (state.x) copy(state, xg);
           prng.state = function() {
             return copy(xg, {});
           };
@@ -403,10 +391,8 @@ var require_xor4096 = __commonJS({
             limit = Math.max(limit, seed2.length);
           }
           for (i = 0, j = -32; j < limit; ++j) {
-            if (seed2)
-              v ^= seed2.charCodeAt((j + 32) % seed2.length);
-            if (j === 0)
-              w = v;
+            if (seed2) v ^= seed2.charCodeAt((j + 32) % seed2.length);
+            if (j === 0) w = v;
             v ^= v << 10;
             v ^= v >>> 15;
             v ^= v << 4;
@@ -444,8 +430,7 @@ var require_xor4096 = __commonJS({
       }
       ;
       function impl(seed, opts) {
-        if (seed == null)
-          seed = +/* @__PURE__ */ new Date();
+        if (seed == null) seed = +/* @__PURE__ */ new Date();
         var xg = new XorGen(seed), state = opts && opts.state, prng = function() {
           return (xg.next() >>> 0) / 4294967296;
         };
@@ -458,8 +443,7 @@ var require_xor4096 = __commonJS({
         prng.int32 = xg.next;
         prng.quick = prng;
         if (state) {
-          if (state.X)
-            copy(state, xg);
+          if (state.X) copy(state, xg);
           prng.state = function() {
             return copy(xg, {});
           };
@@ -539,8 +523,7 @@ var require_tychei = __commonJS({
         prng.int32 = xg.next;
         prng.quick = prng;
         if (state) {
-          if (typeof state == "object")
-            copy(state, xg);
+          if (typeof state == "object") copy(state, xg);
           prng.state = function() {
             return copy(xg, {});
           };
@@ -619,8 +602,7 @@ var require_seedrandom = __commonJS({
           if (is_math_call) {
             math[rngname] = prng2;
             return seed2;
-          } else
-            return prng2;
+          } else return prng2;
         })(
           prng,
           shortseed,
