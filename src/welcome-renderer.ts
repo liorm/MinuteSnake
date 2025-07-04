@@ -67,8 +67,8 @@ export class WelcomeRenderer {
     ctx.font = `${buttonFontSize}px Arial`;
     ctx.fillStyle = '#bdc3c7';
 
-    const startY = canvasHeight / 2;
-    const lineHeight = buttonFontSize * 1.5;
+    const startY = canvasHeight * 0.45; // Start instructions higher
+    const lineHeight = buttonFontSize * 1.2; // Tighter line spacing
 
     instructions.forEach((instruction, index) => {
       const y = startY + index * lineHeight;
@@ -82,6 +82,10 @@ export class WelcomeRenderer {
       }
     });
 
+    // Calculate position for animated prompt to avoid overlap
+    const instructionsEndY = startY + (instructions.length - 1) * lineHeight;
+    const promptY = Math.max(instructionsEndY + lineHeight * 2, canvasHeight * 0.85);
+
     // Draw animated start prompt
     const time = Date.now();
     const alpha = (Math.sin(time * 0.005) + 1) / 2; // Oscillate between 0 and 1
@@ -92,7 +96,7 @@ export class WelcomeRenderer {
     ctx.fillText(
       '▶ Press ENTER or CLICK to Play',
       canvasWidth / 2,
-      canvasHeight * 0.85
+      promptY
     );
 
     ctx.globalAlpha = 1.0; // Reset alpha
