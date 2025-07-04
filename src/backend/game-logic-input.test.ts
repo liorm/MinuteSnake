@@ -25,7 +25,7 @@ describe('GameLogic - Input', () => {
       const game = new GameLogic(stage);
       let inputHandled = false;
 
-      game.onInputCallback = () => {
+      game.onInputCallback = (): void => {
         inputHandled = true;
       };
 
@@ -47,7 +47,7 @@ describe('GameLogic - Input', () => {
       const game = new GameLogic(_defaultStage);
       let inputHandled = false;
 
-      game.onInputCallback = () => {
+      game.onInputCallback = (): void => {
         inputHandled = true;
       };
 
@@ -75,7 +75,7 @@ describe('GameLogic - Input', () => {
       const game = new GameLogic(stage);
       let inputHandled = false;
 
-      game.onInputCallback = () => {
+      game.onInputCallback = (): void => {
         inputHandled = true;
       };
 
@@ -102,7 +102,7 @@ describe('GameLogic - Input', () => {
       const game = new GameLogic(_defaultStage);
       let callbackCount = 0;
 
-      game.onInputCallback = () => {
+      game.onInputCallback = (): void => {
         callbackCount++;
       };
 
@@ -185,7 +185,7 @@ describe('GameLogic - Input', () => {
       const game = new GameLogic(_defaultStage);
       let inputHandled = false;
 
-      game.onInputCallback = () => {
+      game.onInputCallback = (): void => {
         inputHandled = true;
       };
 

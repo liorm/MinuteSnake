@@ -105,7 +105,11 @@ describe('GameLogic - Advance Time', () => {
       game.state.speed = 10;
       const snake = game.state.snakes[0];
 
-      const testDirection = (dir: EDirection, hole: Vector, wrapTo: Vector) => {
+      const testDirection = (
+        dir: EDirection,
+        hole: Vector,
+        wrapTo: Vector
+      ): void => {
         game.input({
           inputType: 'direction',
           dir,
