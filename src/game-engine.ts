@@ -1,6 +1,8 @@
 import { EDirection, GameInput, IGameStage } from './backend/game-logic.js';
-import { IActor, HumanActor } from './actors.js';
+import { IActor, HumanActor, AIActor } from './actors.js';
 import { GameRenderer } from './game-renderer.js';
+import { GameState } from './game-state.js';
+import { WelcomeRenderer } from './welcome-renderer.js';
 
 const MAX_INPUT_ITERATIONS = 10;
 import {
@@ -20,10 +22,12 @@ import { Vector } from './backend/utils.js';
  */
 export class GameEngine {
   private _gameRenderer!: GameRenderer; // Will be initialized in start()
+  private _welcomeRenderer!: WelcomeRenderer; // Will be initialized in start()
   private _handler!: GameHandlerBase; // Will be initialized in start()
   private _lastEngineTime!: number; // Will be initialized in start()
   private _isPlaybackMode = false;
   private _actors: IActor[] = [];
+  private _currentState: GameState = GameState.WELCOME;
 
   constructor(
     private window: Window,
@@ -33,7 +37,7 @@ export class GameEngine {
 
   start(): void {
     this._gameRenderer = new GameRenderer();
-    this._restartLiveMode();
+    this._welcomeRenderer = new WelcomeRenderer();
     this._initListeners();
     this._updateCanvasDimensions();
     this._timeout();
@@ -44,6 +48,7 @@ export class GameEngine {
       this._updateCanvasDimensions()
     );
     this.window.addEventListener('keydown', e => this._onKeyDown(e));
+    this.canvas.addEventListener('click', e => this._onCanvasClick(e));
   }
 
   private _onKeyDown(event: KeyboardEvent): void {
@@ -51,31 +56,77 @@ export class GameEngine {
       return;
     }
 
-    if (event.key.toLowerCase() === 'p') {
-      if (!this._isPlaybackMode) {
-        this._enterPlaybackMode();
-      } else {
-        this._resumeLiveMode();
+    // Handle welcome screen input
+    if (this._currentState === GameState.WELCOME) {
+      if (event.key.toLowerCase() === 'enter') {
+        this._startGame();
       }
-    } else if (event.key.toLowerCase() === 'n') {
-      this._restartLiveMode();
-    } else if (event.key === '+') {
-      this._performInput({
-        inputType: 'speed',
-        speedIncrement: 1,
-      });
-    } else if (event.key === '-') {
-      this._performInput({
-        inputType: 'speed',
-        speedIncrement: -1,
-      });
-    } else {
-      // Route key input to the actors
-      for (const actor of this._actors) {
-        if (actor instanceof HumanActor) {
-          actor.handleKeyInput(event);
+      event.preventDefault();
+      return;
+    }
+
+    // Handle game over screen input
+    if (this._currentState === GameState.GAME_OVER) {
+      if (
+        event.key.toLowerCase() === 'enter' ||
+        event.key.toLowerCase() === 'n'
+      ) {
+        this._showWelcomeScreen();
+      } else if (event.key.toLowerCase() === 'escape') {
+        this._showWelcomeScreen();
+      }
+      event.preventDefault();
+      return;
+    }
+
+    // Handle playing state input
+    if (this._currentState === GameState.PLAYING) {
+      if (event.key.toLowerCase() === 'p') {
+        if (!this._isPlaybackMode) {
+          this._enterPlaybackMode();
+        } else {
+          this._resumeLiveMode();
+        }
+      } else if (event.key.toLowerCase() === 'n') {
+        this._restartLiveMode();
+      } else if (event.key.toLowerCase() === 'escape') {
+        this._showWelcomeScreen();
+      } else if (event.key === '+') {
+        this._performInput({
+          inputType: 'speed',
+          speedIncrement: 1,
+        });
+      } else if (event.key === '-') {
+        this._performInput({
+          inputType: 'speed',
+          speedIncrement: -1,
+        });
+      } else {
+        // Route key input to the actors
+        for (const actor of this._actors) {
+          if (actor instanceof HumanActor) {
+            actor.handleKeyInput(event);
+          }
         }
       }
+    }
+
+    event.preventDefault();
+  }
+
+  private _onCanvasClick(event: MouseEvent): void {
+    if (event.defaultPrevented) {
+      return;
+    }
+
+    // Handle welcome screen click
+    if (this._currentState === GameState.WELCOME) {
+      this._startGame();
+    }
+
+    // Handle game over screen click
+    if (this._currentState === GameState.GAME_OVER) {
+      this._showWelcomeScreen();
     }
 
     event.preventDefault();
@@ -85,7 +136,15 @@ export class GameEngine {
     this.canvas.height = this.window.innerHeight;
     this.canvas.width = this.window.innerWidth;
 
-    this._gameRenderer.onCanvasSizeChanged(
+    // Only update game renderer if we're in playing state and have initialized it
+    if (this._currentState === GameState.PLAYING && this._handler) {
+      this._gameRenderer.onCanvasSizeChanged(
+        this.canvas.width,
+        this.canvas.height
+      );
+    }
+    
+    this._welcomeRenderer.onCanvasSizeChanged(
       this.canvas.width,
       this.canvas.height
     );
@@ -99,21 +158,24 @@ export class GameEngine {
   }
 
   private _update(): void {
-    this._advanceTimeToNow();
+    // Only update game logic when in playing state
+    if (this._currentState === GameState.PLAYING) {
+      this._advanceTimeToNow();
 
-    // Let actors respond to state changes
-    let hasInput = false;
-    let iterations = 0;
-    do {
-      for (const actor of this._actors) {
-        const input = actor.onStateUpdate(this._handler.state);
-        if (input) {
-          this._performInput(input);
-          hasInput = true;
+      // Let actors respond to state changes
+      let hasInput = false;
+      let iterations = 0;
+      do {
+        for (const actor of this._actors) {
+          const input = actor.onStateUpdate(this._handler.state);
+          if (input) {
+            this._performInput(input);
+            hasInput = true;
+          }
         }
-      }
-      iterations++;
-    } while (hasInput && iterations < MAX_INPUT_ITERATIONS);
+        iterations++;
+      } while (hasInput && iterations < MAX_INPUT_ITERATIONS);
+    }
   }
 
   private _performInput(input: GameInput): void {
@@ -192,11 +254,19 @@ export class GameEngine {
 
   private _draw(): void {
     this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
-    this._gameRenderer.render(
-      this.ctx,
-      this._handler.state,
-      this._isPlaybackMode
-    );
+
+    if (this._currentState === GameState.WELCOME) {
+      this._welcomeRenderer.render(this.ctx);
+    } else if (
+      this._currentState === GameState.PLAYING ||
+      this._currentState === GameState.GAME_OVER
+    ) {
+      this._gameRenderer.render(
+        this.ctx,
+        this._handler.state,
+        this._isPlaybackMode
+      );
+    }
   }
 
   /**
@@ -206,5 +276,61 @@ export class GameEngine {
    */
   addActor(actor: IActor): void {
     this._actors.push(actor);
+  }
+
+  /**
+   * Transitions from welcome screen to active gameplay.
+   * Initializes the game state and begins the game loop.
+   */
+  private _startGame(): void {
+    this._currentState = GameState.PLAYING;
+
+    // Add default actors when starting the game
+    this._actors = [];
+    const player1 = new HumanActor(0, {
+      up: 'arrowup',
+      down: 'arrowdown',
+      left: 'arrowleft',
+      right: 'arrowright',
+    });
+    this._actors.push(player1);
+
+    // Add AI actors
+    this._actors.push(new AIActor(1));
+    this._actors.push(new AIActor(2));
+
+    this._restartLiveMode();
+    
+    // Update canvas dimensions for game renderer now that we have game options
+    this._gameRenderer.onCanvasSizeChanged(
+      this.canvas.width,
+      this.canvas.height
+    );
+  }
+
+  /**
+   * Returns to the welcome screen from any other state.
+   * Resets the game state and clears actors.
+   */
+  private _showWelcomeScreen(): void {
+    this._currentState = GameState.WELCOME;
+    this._actors = [];
+    this._isPlaybackMode = false;
+  }
+
+  /**
+   * Transitions to game over state.
+   * This can be called when the game ends.
+   */
+  private _showGameOver(): void {
+    this._currentState = GameState.GAME_OVER;
+  }
+
+  /**
+   * Gets the current game state.
+   * @returns The current GameState
+   */
+  get currentState(): GameState {
+    return this._currentState;
   }
 }
