@@ -21,6 +21,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage report
 
+### Git Hooks
+- **Pre-commit hook** - Automatically runs before each commit:
+  - `npm run lint` - Ensures code follows ESLint rules
+  - `npm run format:check` - Verifies code is properly formatted
+  - `npm run test` - Runs all tests to ensure no regressions
+  - Commit is blocked if any check fails
+
 ## Architecture Overview
 
 MinuteSnake is a modern Snake game implementation using TypeScript, Canvas API, and a modular architecture:

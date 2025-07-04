@@ -1,11 +1,41 @@
 /**
- * Handles rendering of the welcome screen using HTML5 Canvas API.
- * Displays the game title, instructions, and start button with responsive
- * sizing that adapts to different screen dimensions.
+ * Player configuration interface for welcome screen menu
+ */
+export interface PlayerConfiguration {
+  humanPlayers: number;
+  aiPlayers: number;
+}
+
+/**
+ * Welcome screen menu items
+ */
+export enum WelcomeMenuItem {
+  HUMAN_PLAYERS = 0,
+  AI_PLAYERS = 1,
+  START = 2,
+}
+
+/**
+ * Callback interface for welcome screen completion
+ */
+export interface WelcomeScreenCallbacks {
+  onStartGame: (config: PlayerConfiguration) => void;
+}
+
+/**
+ * Handles rendering and input for the welcome screen using HTML5 Canvas API.
+ * Displays the game title, instructions, and interactive player selection menu
+ * with responsive sizing that adapts to different screen dimensions.
+ * Manages its own state and input handling.
  */
 export class WelcomeRenderer {
   private _canvasWidth: number = 0;
   private _canvasHeight: number = 0;
+  private _playerConfig: PlayerConfiguration = {
+    humanPlayers: 1,
+    aiPlayers: 2,
+  };
+  private _selectedMenuItem: WelcomeMenuItem = WelcomeMenuItem.HUMAN_PLAYERS;
 
   /**
    * Updates the renderer's understanding of canvas dimensions.
@@ -17,8 +47,78 @@ export class WelcomeRenderer {
   }
 
   /**
+   * Handles keyboard input for the welcome screen.
+   * @param event Keyboard event
+   * @param callbacks Callback functions for screen completion
+   */
+  handleKeyInput(
+    event: KeyboardEvent,
+    callbacks: WelcomeScreenCallbacks
+  ): void {
+    const key = event.key.toLowerCase();
+
+    switch (key) {
+      case 'arrowup':
+        this._selectedMenuItem = Math.max(0, this._selectedMenuItem - 1);
+        break;
+      case 'arrowdown':
+        this._selectedMenuItem = Math.min(
+          WelcomeMenuItem.START,
+          this._selectedMenuItem + 1
+        );
+        break;
+      case 'arrowleft':
+        this._adjustPlayerCount(-1);
+        break;
+      case 'arrowright':
+        this._adjustPlayerCount(1);
+        break;
+      case 'enter':
+        if (this._selectedMenuItem === WelcomeMenuItem.START) {
+          this._startGame(callbacks);
+        }
+        break;
+    }
+  }
+
+  /**
+   * Handles mouse click input for the welcome screen.
+   * @param event Mouse event
+   * @param callbacks Callback functions for screen completion
+   */
+  handleClickInput(event: MouseEvent, callbacks: WelcomeScreenCallbacks): void {
+    // For now, clicking just starts the game if we're on the start option
+    if (this._selectedMenuItem === WelcomeMenuItem.START) {
+      this._startGame(callbacks);
+    }
+  }
+
+  private _adjustPlayerCount(delta: number): void {
+    if (this._selectedMenuItem === WelcomeMenuItem.HUMAN_PLAYERS) {
+      this._playerConfig.humanPlayers = Math.max(
+        0,
+        Math.min(2, this._playerConfig.humanPlayers + delta)
+      );
+    } else if (this._selectedMenuItem === WelcomeMenuItem.AI_PLAYERS) {
+      this._playerConfig.aiPlayers = Math.max(
+        0,
+        Math.min(4, this._playerConfig.aiPlayers + delta)
+      );
+    }
+  }
+
+  private _startGame(callbacks: WelcomeScreenCallbacks): void {
+    // Validate that at least one player is selected
+    if (this._playerConfig.humanPlayers + this._playerConfig.aiPlayers === 0) {
+      return; // Don't start game if no players selected
+    }
+
+    callbacks.onStartGame(this._playerConfig);
+  }
+
+  /**
    * Renders the welcome screen to the provided canvas context.
-   * Displays title, instructions, and interactive elements.
+   * Displays title, player selection menu, and navigation instructions.
    */
   render(ctx: CanvasRenderingContext2D): void {
     // Use canvas dimensions if our stored dimensions are zero
@@ -31,74 +131,106 @@ export class WelcomeRenderer {
 
     // Calculate responsive font sizes
     const titleFontSize = Math.min(canvasWidth, canvasHeight) / 10;
-    const instructionFontSize = Math.min(canvasWidth, canvasHeight) / 20;
-    const buttonFontSize = Math.min(canvasWidth, canvasHeight) / 25;
+    const subtitleFontSize = Math.min(canvasWidth, canvasHeight) / 20;
+    const menuFontSize = Math.min(canvasWidth, canvasHeight) / 25;
+
+    // Set text properties
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
     // Draw title
     ctx.font = `Bold ${titleFontSize}px Arial`;
     ctx.fillStyle = '#ecf0f1';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-
-    const title = 'MinuteSnake';
-    ctx.fillText(title, canvasWidth / 2, canvasHeight / 4);
+    ctx.fillText('MinuteSnake', canvasWidth / 2, canvasHeight / 6);
 
     // Draw subtitle
-    ctx.font = `${instructionFontSize}px Arial`;
+    ctx.font = `${subtitleFontSize}px Arial`;
     ctx.fillStyle = '#95a5a6';
     ctx.fillText(
-      'A modern Snake game',
+      'Configure Players',
       canvasWidth / 2,
-      canvasHeight / 4 + titleFontSize
+      canvasHeight / 6 + titleFontSize * 0.8
     );
 
-    // Draw instructions
-    const instructions = [
-      'Press ENTER or CLICK to start game',
-      '',
-      'Controls:',
-      '• Arrow keys to move',
-      '• P to playback game',
-      '• N to start new game',
-      '• +/- to change speed',
-      '• ESC to return to menu',
+    // Menu setup
+    const menuStartY = canvasHeight * 0.4;
+    const menuItemHeight = menuFontSize * 2;
+    ctx.font = `${menuFontSize}px Arial`;
+
+    // Menu items
+    const menuItems = [
+      {
+        text: `Human players: ${this._playerConfig.humanPlayers}`,
+        menuItem: WelcomeMenuItem.HUMAN_PLAYERS,
+      },
+      {
+        text: `AI players: ${this._playerConfig.aiPlayers}`,
+        menuItem: WelcomeMenuItem.AI_PLAYERS,
+      },
+      { text: 'Start', menuItem: WelcomeMenuItem.START },
     ];
 
-    ctx.font = `${buttonFontSize}px Arial`;
-    ctx.fillStyle = '#bdc3c7';
+    // Draw menu items
+    menuItems.forEach((item, index) => {
+      const y = menuStartY + index * menuItemHeight;
+      const isSelected = this._selectedMenuItem === item.menuItem;
 
-    const startY = canvasHeight * 0.45; // Start instructions higher
-    const lineHeight = buttonFontSize * 1.2; // Tighter line spacing
+      // Draw selection indicator
+      if (isSelected) {
+        ctx.fillStyle = '#3498db';
+        ctx.fillRect(
+          canvasWidth / 2 - 200,
+          y - menuFontSize * 0.7,
+          400,
+          menuFontSize * 1.4
+        );
+      }
 
-    instructions.forEach((instruction, index) => {
-      const y = startY + index * lineHeight;
-      if (index === 0) {
-        // Highlight the start instruction
-        ctx.fillStyle = '#e74c3c';
-        ctx.fillText(instruction, canvasWidth / 2, y);
-        ctx.fillStyle = '#bdc3c7';
-      } else {
-        ctx.fillText(instruction, canvasWidth / 2, y);
+      // Draw menu item text
+      ctx.fillStyle = isSelected ? '#ffffff' : '#ecf0f1';
+      ctx.fillText(item.text, canvasWidth / 2, y);
+
+      // Draw arrows for player count items
+      if (
+        item.menuItem === WelcomeMenuItem.HUMAN_PLAYERS ||
+        item.menuItem === WelcomeMenuItem.AI_PLAYERS
+      ) {
+        ctx.fillStyle = isSelected ? '#ffffff' : '#95a5a6';
+        ctx.fillText('◀', canvasWidth / 2 - 100, y);
+        ctx.fillText('▶', canvasWidth / 2 + 100, y);
       }
     });
 
-    // Calculate position for animated prompt to avoid overlap
-    const instructionsEndY = startY + (instructions.length - 1) * lineHeight;
-    const promptY = Math.max(instructionsEndY + lineHeight * 2, canvasHeight * 0.85);
+    // Draw instructions
+    const instructionY =
+      menuStartY + menuItems.length * menuItemHeight + menuFontSize * 2;
+    const instructionFontSize = Math.min(canvasWidth, canvasHeight) / 35;
+    ctx.font = `${instructionFontSize}px Arial`;
+    ctx.fillStyle = '#bdc3c7';
 
-    // Draw animated start prompt
-    const time = Date.now();
-    const alpha = (Math.sin(time * 0.005) + 1) / 2; // Oscillate between 0 and 1
-    ctx.globalAlpha = alpha * 0.7 + 0.3; // Range from 0.3 to 1.0
+    const instructions = [
+      '↑↓ Navigate menu • ◀▶ Adjust players • ENTER Start game',
+      '',
+      'Game Controls: Arrow keys (Player 1) • WASD (Player 2)',
+      'P: Playback • N: New game • ESC: Menu • +/-: Speed',
+    ];
 
-    ctx.font = `Bold ${buttonFontSize}px Arial`;
-    ctx.fillStyle = '#2ecc71';
-    ctx.fillText(
-      '▶ Press ENTER or CLICK to Play',
-      canvasWidth / 2,
-      promptY
-    );
+    instructions.forEach((instruction, index) => {
+      const y = instructionY + index * instructionFontSize * 1.5;
+      ctx.fillText(instruction, canvasWidth / 2, y);
+    });
 
-    ctx.globalAlpha = 1.0; // Reset alpha
+    // Draw total players validation
+    const totalPlayers =
+      this._playerConfig.humanPlayers + this._playerConfig.aiPlayers;
+    if (totalPlayers === 0) {
+      ctx.font = `Bold ${menuFontSize * 0.8}px Arial`;
+      ctx.fillStyle = '#e74c3c';
+      ctx.fillText(
+        '⚠ Select at least one player to start',
+        canvasWidth / 2,
+        instructionY - menuFontSize
+      );
+    }
   }
 }

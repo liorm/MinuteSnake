@@ -2,7 +2,11 @@ import { EDirection, GameInput, IGameStage } from './backend/game-logic.js';
 import { IActor, HumanActor, AIActor } from './actors.js';
 import { GameRenderer } from './game-renderer.js';
 import { GameState } from './game-state.js';
-import { WelcomeRenderer } from './welcome-renderer.js';
+import {
+  WelcomeRenderer,
+  WelcomeScreenCallbacks,
+  PlayerConfiguration,
+} from './welcome-renderer.js';
 
 const MAX_INPUT_ITERATIONS = 10;
 import {
@@ -28,12 +32,18 @@ export class GameEngine {
   private _isPlaybackMode = false;
   private _actors: IActor[] = [];
   private _currentState: GameState = GameState.WELCOME;
+  private _welcomeCallbacks: WelcomeScreenCallbacks;
 
   constructor(
     private window: Window,
     private canvas: HTMLCanvasElement,
     private ctx: CanvasRenderingContext2D
-  ) {}
+  ) {
+    this._welcomeCallbacks = {
+      onStartGame: (config: PlayerConfiguration): void =>
+        this._startGame(config),
+    };
+  }
 
   start(): void {
     this._gameRenderer = new GameRenderer();
@@ -58,9 +68,7 @@ export class GameEngine {
 
     // Handle welcome screen input
     if (this._currentState === GameState.WELCOME) {
-      if (event.key.toLowerCase() === 'enter') {
-        this._startGame();
-      }
+      this._welcomeRenderer.handleKeyInput(event, this._welcomeCallbacks);
       event.preventDefault();
       return;
     }
@@ -121,7 +129,7 @@ export class GameEngine {
 
     // Handle welcome screen click
     if (this._currentState === GameState.WELCOME) {
-      this._startGame();
+      this._welcomeRenderer.handleClickInput(event, this._welcomeCallbacks);
     }
 
     // Handle game over screen click
@@ -143,7 +151,7 @@ export class GameEngine {
         this.canvas.height
       );
     }
-    
+
     this._welcomeRenderer.onCanvasSizeChanged(
       this.canvas.width,
       this.canvas.height
@@ -194,9 +202,16 @@ export class GameEngine {
     }
   }
 
-  private _restartLiveMode(): void {
+  private _restartLiveMode(playerConfig?: PlayerConfiguration): void {
     const x = 60,
       y = 40;
+
+    // Create snakes based on the number of players
+    const totalPlayers = playerConfig
+      ? playerConfig.humanPlayers + playerConfig.aiPlayers
+      : this._actors.length;
+    const snakes = this._generateSnakeStartPositions(totalPlayers, x, y);
+
     const gameStage: IGameStage = {
       xTiles: x,
       yTiles: y,
@@ -213,26 +228,54 @@ export class GameEngine {
         new Vector(x / 2, y / 2 - 1),
         new Vector(x / 2 - 1, y / 2),
       ],
-      snakes: [
-        {
-          position: new Vector(4, 4),
-          direction: EDirection.RIGHT,
-        },
-        {
-          position: new Vector(x - 4, y - 4),
-          direction: EDirection.LEFT,
-        },
-        {
-          position: new Vector(x - 10, y - 10),
-          direction: EDirection.LEFT,
-        },
-      ],
+      snakes: snakes,
     };
 
     this._isPlaybackMode = false;
     this._handler = new LiveHandler(gameStage);
     this._lastEngineTime = performance.now();
     this._gameRenderer.initRenderer(this._handler.gameStage);
+  }
+
+  private _generateSnakeStartPositions(
+    numPlayers: number,
+    boardWidth: number,
+    boardHeight: number
+  ): Array<{ position: Vector; direction: EDirection }> {
+    const snakes = [];
+    const margin = 4;
+
+    // Define starting positions for up to 6 players (2 human + 4 AI max)
+    const startPositions = [
+      { position: new Vector(margin, margin), direction: EDirection.RIGHT },
+      {
+        position: new Vector(boardWidth - margin, boardHeight - margin),
+        direction: EDirection.LEFT,
+      },
+      {
+        position: new Vector(boardWidth - margin, margin),
+        direction: EDirection.DOWN,
+      },
+      {
+        position: new Vector(margin, boardHeight - margin),
+        direction: EDirection.UP,
+      },
+      {
+        position: new Vector(boardWidth / 2, margin),
+        direction: EDirection.DOWN,
+      },
+      {
+        position: new Vector(boardWidth / 2, boardHeight - margin),
+        direction: EDirection.UP,
+      },
+    ];
+
+    // Take only the number of positions we need
+    for (let i = 0; i < Math.min(numPlayers, startPositions.length); i++) {
+      snakes.push(startPositions[i]);
+    }
+
+    return snakes;
   }
 
   private _resumeLiveMode(): void {
@@ -282,30 +325,57 @@ export class GameEngine {
    * Transitions from welcome screen to active gameplay.
    * Initializes the game state and begins the game loop.
    */
-  private _startGame(): void {
+  private _startGame(playerConfig: PlayerConfiguration): void {
     this._currentState = GameState.PLAYING;
 
-    // Add default actors when starting the game
+    // Create actors based on configuration
     this._actors = [];
-    const player1 = new HumanActor(0, {
-      up: 'arrowup',
-      down: 'arrowdown',
-      left: 'arrowleft',
-      right: 'arrowright',
-    });
-    this._actors.push(player1);
+    let snakeIndex = 0;
 
-    // Add AI actors
-    this._actors.push(new AIActor(1));
-    this._actors.push(new AIActor(2));
+    // Add human players
+    for (let i = 0; i < playerConfig.humanPlayers; i++) {
+      const keyMap = this._getKeyMapForPlayer(i);
+      this._actors.push(new HumanActor(snakeIndex, keyMap));
+      snakeIndex++;
+    }
 
-    this._restartLiveMode();
-    
+    // Add AI players
+    for (let i = 0; i < playerConfig.aiPlayers; i++) {
+      this._actors.push(new AIActor(snakeIndex));
+      snakeIndex++;
+    }
+
+    this._restartLiveMode(playerConfig);
+
     // Update canvas dimensions for game renderer now that we have game options
     this._gameRenderer.onCanvasSizeChanged(
       this.canvas.width,
       this.canvas.height
     );
+  }
+
+  private _getKeyMapForPlayer(playerIndex: number): {
+    up: string;
+    down: string;
+    left: string;
+    right: string;
+  } {
+    if (playerIndex === 0) {
+      return {
+        up: 'arrowup',
+        down: 'arrowdown',
+        left: 'arrowleft',
+        right: 'arrowright',
+      };
+    } else {
+      // Second player uses WASD keys
+      return {
+        up: 'w',
+        down: 's',
+        left: 'a',
+        right: 'd',
+      };
+    }
   }
 
   /**
