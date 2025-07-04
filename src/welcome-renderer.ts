@@ -86,7 +86,10 @@ export class WelcomeRenderer {
    * @param event Mouse event
    * @param callbacks Callback functions for screen completion
    */
-  handleClickInput(event: MouseEvent, callbacks: WelcomeScreenCallbacks): void {
+  handleClickInput(
+    _event: MouseEvent,
+    callbacks: WelcomeScreenCallbacks
+  ): void {
     // For now, clicking just starts the game if we're on the start option
     if (this._selectedMenuItem === WelcomeMenuItem.START) {
       this._startGame(callbacks);
@@ -102,7 +105,7 @@ export class WelcomeRenderer {
     } else if (this._selectedMenuItem === WelcomeMenuItem.AI_PLAYERS) {
       this._playerConfig.aiPlayers = Math.max(
         0,
-        Math.min(4, this._playerConfig.aiPlayers + delta)
+        Math.min(6, this._playerConfig.aiPlayers + delta)
       );
     }
   }
@@ -196,8 +199,15 @@ export class WelcomeRenderer {
         item.menuItem === WelcomeMenuItem.AI_PLAYERS
       ) {
         ctx.fillStyle = isSelected ? '#ffffff' : '#95a5a6';
-        ctx.fillText('◀', canvasWidth / 2 - 100, y);
-        ctx.fillText('▶', canvasWidth / 2 + 100, y);
+
+        // Calculate text width and position arrows outside the text
+        const textWidth = ctx.measureText(item.text).width;
+        const arrowMargin = menuFontSize * 0.8; // Space between text and arrows
+        const leftArrowX = canvasWidth / 2 - textWidth / 2 - arrowMargin;
+        const rightArrowX = canvasWidth / 2 + textWidth / 2 + arrowMargin;
+
+        ctx.fillText('◀', leftArrowX, y);
+        ctx.fillText('▶', rightArrowX, y);
       }
     });
 
