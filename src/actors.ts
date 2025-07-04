@@ -121,22 +121,30 @@ export class AIActor implements IActor {
     return bodyTiles.some(tile => tile.x === pos.x && tile.y === pos.y);
   }
 
-  private isTooCloseToWalls(pos: Vector, state: IGameState, radius: number): boolean {
+  private isTooCloseToWalls(
+    pos: Vector,
+    state: IGameState,
+    radius: number
+  ): boolean {
     const boardSize = state.blocks.length - 1; // Assuming square board with walls at edges
     return (
-      pos.x < radius || 
-      pos.y < radius || 
-      pos.x > boardSize - radius - 1 || 
+      pos.x < radius ||
+      pos.y < radius ||
+      pos.x > boardSize - radius - 1 ||
       pos.y > boardSize - radius - 1
     );
   }
 
-  private isAppleNearWalls(apple: Vector, state: IGameState, radius: number): boolean {
+  private isAppleNearWalls(
+    apple: Vector,
+    state: IGameState,
+    radius: number
+  ): boolean {
     const boardSize = state.blocks.length - 1;
     return (
-      apple.x < radius || 
-      apple.y < radius || 
-      apple.x > boardSize - radius - 1 || 
+      apple.x < radius ||
+      apple.y < radius ||
+      apple.x > boardSize - radius - 1 ||
       apple.y > boardSize - radius - 1
     );
   }
