@@ -6,8 +6,10 @@
   "scripts": {
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
-    "build": "node build.js",
-    "serve": "http-server -c-1 .",
+    "build": "esbuild src/app.ts --bundle --outfile=dist/bundle.js --format=esm --platform=browser --target=es2021 --sourcemap",
+    "dev": "npm run build -- --watch",
+    "build:prod": "npm run build -- --minify",
+    "serve": "npm run build -- --watch --serve=8080 --servedir=.",
     "format": "prettier --write \"**/*.{ts,js,json,html,css}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,html,css}\"",
     "lint": "eslint \"src/**/*.ts\"",
