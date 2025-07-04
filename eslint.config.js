@@ -19,6 +19,8 @@ export default [
         HTMLCanvasElement: 'readonly',
         CanvasRenderingContext2D: 'readonly',
         KeyboardEvent: 'readonly',
+        MouseEvent: 'readonly',
+        Event: 'readonly',
         requestAnimationFrame: 'readonly',
         performance: 'readonly',
         console: 'readonly',
