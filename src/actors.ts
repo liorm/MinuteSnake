@@ -121,6 +121,26 @@ export class AIActor implements IActor {
     return bodyTiles.some(tile => tile.x === pos.x && tile.y === pos.y);
   }
 
+  private isTooCloseToWalls(pos: Vector, state: IGameState, radius: number): boolean {
+    const boardSize = state.blocks.length - 1; // Assuming square board with walls at edges
+    return (
+      pos.x < radius || 
+      pos.y < radius || 
+      pos.x > boardSize - radius - 1 || 
+      pos.y > boardSize - radius - 1
+    );
+  }
+
+  private isAppleNearWalls(apple: Vector, state: IGameState, radius: number): boolean {
+    const boardSize = state.blocks.length - 1;
+    return (
+      apple.x < radius || 
+      apple.y < radius || 
+      apple.x > boardSize - radius - 1 || 
+      apple.y > boardSize - radius - 1
+    );
+  }
+
   onStateUpdate(state: IGameState): GameInput | null {
     const snake = state.snakes[this.snakeIdx];
     const apple = state.applePos;
@@ -159,14 +179,19 @@ export class AIActor implements IActor {
       else moves.push(EDirection.LEFT);
     }
 
+    // Check if apple is near walls - if so, we should ignore wall safety to reach it
+    const appleNearWalls = this.isAppleNearWalls(apple, state, 2);
+
     // Try each move in priority order
     for (const dir of moves) {
       const nextPos = this.getNextPosition(snake.position, dir, state);
 
       // Check if move is safe (no obstacles, not too close to other snakes, and won't hit own body)
+      // Only check wall safety if apple is NOT near walls
       if (
         !obstacles.has(`${nextPos.x},${nextPos.y}`) &&
         !this.isNearOtherSnake(nextPos, state, this.safetyRadius) &&
+        (appleNearWalls || !this.isTooCloseToWalls(nextPos, state, 2)) &&
         !this.wouldCollideWithSelf(nextPos, state)
       ) {
         return {
@@ -189,6 +214,7 @@ export class AIActor implements IActor {
       if (
         !obstacles.has(`${nextPos.x},${nextPos.y}`) &&
         !this.isNearOtherSnake(nextPos, state, 2) &&
+        (appleNearWalls || !this.isTooCloseToWalls(nextPos, state, 2)) &&
         !this.wouldCollideWithSelf(nextPos, state)
       ) {
         return {
