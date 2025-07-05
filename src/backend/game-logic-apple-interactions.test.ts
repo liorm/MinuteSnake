@@ -12,7 +12,7 @@ describe('GameLogic - Apple Interactions', () => {
     snakes: [{ position: new Vector(5, 5), direction: EDirection.RIGHT }],
   };
 
-  it('should increase snake target length by 1 when eating normal apple', () => {
+  it('should increase snake target length by 2 when eating normal apple', () => {
     const game = new GameLogic(_defaultStage);
     const snake = game.state.snakes[0];
     const initialTargetLength = snake.targetLength;
@@ -22,8 +22,8 @@ describe('GameLogic - Apple Interactions', () => {
 
     game.advanceTime(100);
 
-    expect(snake.targetLength).toBe(initialTargetLength + 1);
-    expect(snake.length).toBe(initialTargetLength + 1); // Should reach target after one step
+    expect(snake.targetLength).toBe(initialTargetLength + 2);
+    expect(snake.length).toBe(initialTargetLength + 1); // Should grow by 1 per step
     expect(snake.tiles.length).toBeLessThanOrEqual(snake.length);
   });
 
@@ -228,7 +228,7 @@ describe('GameLogic - Apple Interactions', () => {
     expect(appleTypes.includes(AppleType.NORMAL)).toBe(true);
     expect(appleTypes.includes(AppleType.DIET)).toBe(true);
 
-    // Should have more normal apples than diet apples (80/20 split)
+    // Should have more normal apples than diet apples (90/10 split)
     const normalCount = appleTypes.filter(t => t === AppleType.NORMAL).length;
     const dietCount = appleTypes.filter(t => t === AppleType.DIET).length;
 

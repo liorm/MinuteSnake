@@ -326,8 +326,8 @@ export class GameLogic {
       break;
     }
 
-    // Determine apple type (80% normal, 20% diet)
-    const appleType = this._prng() < 0.8 ? AppleType.NORMAL : AppleType.DIET;
+    // Determine apple type (90% normal, 10% diet)
+    const appleType = this._prng() < 0.9 ? AppleType.NORMAL : AppleType.DIET;
 
     this._state.apple = {
       position: newPos,
@@ -341,7 +341,7 @@ export class GameLogic {
   ): void {
     switch (appleType) {
       case AppleType.NORMAL:
-        snake.targetLength += 1;
+        snake.targetLength += 2;
         break;
       case AppleType.DIET:
         snake.targetLength = Math.max(1, Math.floor(snake.targetLength * 0.9));
