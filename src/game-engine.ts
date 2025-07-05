@@ -214,7 +214,9 @@ export class GameEngine {
 
     // Create snakes based on the number of players
     const totalPlayers = playerConfig
-      ? playerConfig.humanPlayers + playerConfig.aiPlayers
+      ? playerConfig.humanPlayers +
+        playerConfig.aiPlayers +
+        playerConfig.nnPlayers
       : this._actors.length;
     const snakes = this._generateSnakeStartPositions(totalPlayers, x, y);
 
