@@ -510,7 +510,7 @@ export class Trainer {
       throw new Error('Config loading not supported in browser environment');
     }
 
-    const { promises: fs } = await import('fs');
+    const fs = await import('fs/promises');
     const configData = await fs.readFile(filePath, 'utf8');
     const userConfig = JSON.parse(configData);
 
@@ -542,7 +542,7 @@ export class Trainer {
       URL.revokeObjectURL(url);
     } else {
       // Node.js environment - write to file
-      const { promises: fs } = await import('fs');
+      const fs = await import('fs/promises');
       await fs.writeFile(filePath, configData, 'utf8');
     }
   }

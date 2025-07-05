@@ -339,7 +339,7 @@ export class DataCollector {
       URL.revokeObjectURL(url);
     } else {
       // Node.js environment - write to file
-      const { promises: fs } = await import('fs');
+      const fs = await import('fs/promises');
       await fs.writeFile(filePath, jsonData, 'utf8');
     }
   }
@@ -355,7 +355,7 @@ export class DataCollector {
       throw new Error('File loading not supported in browser environment');
     } else {
       // Node.js environment - read from file
-      const { promises: fs } = await import('fs');
+      const fs = await import('fs/promises');
       jsonData = await fs.readFile(filePath, 'utf8');
     }
 
