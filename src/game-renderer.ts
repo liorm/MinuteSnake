@@ -1,4 +1,4 @@
-import { IGameOptions, IGameState } from './backend/game-logic';
+import { IGameOptions, IGameState, AppleType } from './backend/game-logic';
 import { Vector } from './backend/utils';
 
 /**
@@ -137,6 +137,17 @@ export class GameRenderer {
     ctx.globalAlpha = originalAlpha;
   }
 
+  private _getAppleColor(appleType: AppleType): string {
+    switch (appleType) {
+      case AppleType.NORMAL:
+        return 'red';
+      case AppleType.DIET:
+        return 'orange';
+      default:
+        return 'red';
+    }
+  }
+
   render(
     ctx: CanvasRenderingContext2D,
     gameState: IGameState,
@@ -157,8 +168,9 @@ export class GameRenderer {
     });
 
     // Draw apple
-    if (gameState.applePos) {
-      this._drawTile(ctx, gameState.applePos, 'red');
+    if (gameState.apple) {
+      const appleColor = this._getAppleColor(gameState.apple.type);
+      this._drawTile(ctx, gameState.apple.position, appleColor);
     }
 
     // Draw snakes

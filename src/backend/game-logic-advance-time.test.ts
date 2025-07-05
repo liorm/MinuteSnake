@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EDirection, IGameStage, GameLogic } from './game-logic';
+import { EDirection, IGameStage, GameLogic, AppleType } from './game-logic';
 import { Vector } from './utils';
 
 describe('GameLogic - Advance Time', () => {
@@ -310,7 +310,7 @@ describe('GameLogic - Advance Time', () => {
       const snake = game.state.snakes[0];
       const initialLength = snake.length;
 
-      game.state.applePos = new Vector(6, 5);
+      game.state.apple = { position: new Vector(6, 5), type: AppleType.NORMAL };
       game.state.speed = 10;
 
       game.advanceTime(100);
@@ -322,13 +322,13 @@ describe('GameLogic - Advance Time', () => {
     it('should remove apple when eaten and generate new one', () => {
       const game = new GameLogic(_defaultStage);
 
-      game.state.applePos = new Vector(6, 5);
+      game.state.apple = { position: new Vector(6, 5), type: AppleType.NORMAL };
       game.state.speed = 10;
 
       game.advanceTime(100);
 
-      expect(game.state.applePos).not.toBeNull();
-      expect(game.state.applePos).not.toEqual(new Vector(6, 5));
+      expect(game.state.apple).not.toBeNull();
+      expect(game.state.apple.position).not.toEqual(new Vector(6, 5));
     });
 
     it('should generate new apple in valid position', () => {
@@ -341,10 +341,10 @@ describe('GameLogic - Advance Time', () => {
         snakes: [{ position: new Vector(5, 5), direction: EDirection.RIGHT }],
       });
 
-      game.state.applePos = null;
+      game.state.apple = null;
       game.advanceTime(100);
 
-      const apple = game.state.applePos!;
+      const apple = game.state.apple!.position;
 
       expect(apple.x).toBeGreaterThanOrEqual(0);
       expect(apple.x).toBeLessThan(10);
@@ -364,19 +364,19 @@ describe('GameLogic - Advance Time', () => {
       const game1 = new GameLogic(stage);
       const game2 = new GameLogic(stage);
 
-      game1.state.applePos = null;
-      game2.state.applePos = null;
+      game1.state.apple = null;
+      game2.state.apple = null;
       game1.advanceTime(100);
       game2.advanceTime(100);
 
-      expect(game1.state.applePos).toEqual(game2.state.applePos);
+      expect(game1.state.apple).toEqual(game2.state.apple);
 
-      game1.state.applePos = null;
-      game2.state.applePos = null;
+      game1.state.apple = null;
+      game2.state.apple = null;
       game1.advanceTime(100);
       game2.advanceTime(100);
 
-      expect(game1.state.applePos).toEqual(game2.state.applePos);
+      expect(game1.state.apple).toEqual(game2.state.apple);
     });
   });
 });

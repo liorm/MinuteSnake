@@ -18,7 +18,7 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.blocks.length).toBeGreaterThan(1);
     expect(game.state.blocks).toContainEqual(new Vector(3, 3));
     expect(game.state.speed).toBe(12);
-    expect(game.state.applePos).toBeNull();
+    expect(game.state.apple).toBeNull();
     expect(game.state.gameOver).toBe(false);
 
     expect(game.state.snakes.length).toBe(1);
@@ -46,14 +46,14 @@ describe('GameLogic - Constructor', () => {
     game1.advanceTime(1000);
     game2.advanceTime(1000);
 
-    expect(game1.state.applePos).toEqual(game2.state.applePos);
+    expect(game1.state.apple).toEqual(game2.state.apple);
 
-    game1.state.applePos = null;
-    game2.state.applePos = null;
+    game1.state.apple = null;
+    game2.state.apple = null;
     game1.advanceTime(1000);
     game2.advanceTime(1000);
 
-    expect(game1.state.applePos).toEqual(game2.state.applePos);
+    expect(game1.state.apple).toEqual(game2.state.apple);
   });
 
   it('should create initial blocks based on xTiles, yTiles, and wallHoles', () => {

@@ -27,6 +27,35 @@ export enum EDirection {
 }
 
 /**
+ * Represents different types of apples that can appear in the game.
+ * Each apple type has different effects when consumed by the snake.
+ */
+export enum AppleType {
+  NORMAL = 'normal',
+  DIET = 'diet',
+}
+
+/**
+ * Represents a game apple with its position and type.
+ * Different apple types provide different effects when consumed.
+ */
+export interface IApple {
+  position: Vector;
+  type: AppleType;
+}
+
+/**
+ * Represents an active diet effect on a snake.
+ * Tracks the gradual length reduction over multiple steps.
+ */
+export interface IDietEffect {
+  originalLength: number;
+  targetLength: number;
+  stepsRemaining: number;
+  reductionPerStep: number;
+}
+
+/**
  * Basic game configuration options defining the playing field size
  * and random number generation seed for deterministic gameplay.
  */
@@ -55,7 +84,7 @@ export interface IGameStage extends IGameOptions {
 /**
  * Represents the current state of a snake in the game.
  * Tracks position, length, occupied tiles, current direction,
- * queued direction changes, and score.
+ * queued direction changes, score, and active diet effects.
  */
 export interface IGameStateSnake {
   position: Vector;
@@ -64,17 +93,18 @@ export interface IGameStateSnake {
   dir: EDirection;
   pendingDirs: EDirection[];
   score: number;
+  dietEffect?: IDietEffect;
 }
 
 /**
  * Complete game state including all snakes, obstacles,
- * apple position, game speed and win/loss condition.
+ * apple information, game speed and win/loss condition.
  * Used by both the game logic and renderer.
  */
 export interface IGameState {
   blocks: Vector[];
   speed: number;
-  applePos: Vector | null;
+  apple: IApple | null;
   snakes: IGameStateSnake[];
   gameOver: boolean;
 }
@@ -155,7 +185,7 @@ export class GameLogic {
     return {
       blocks,
       speed: 12,
-      applePos: null,
+      apple: null,
       snakes: this._stage.snakes.map(snake => ({
         position: snake.position,
         length: 4,
@@ -249,9 +279,9 @@ export class GameLogic {
       snake.tiles.push(newPosition);
 
       // Ate an apple?
-      if (snake.position.equals(state.applePos)) {
-        state.applePos = null;
-        snake.length += 2;
+      if (state.apple && snake.position.equals(state.apple.position)) {
+        this._applyAppleEffect(snake, state.apple.type);
+        state.apple = null;
         snake.score += 1;
       }
 
@@ -273,7 +303,12 @@ export class GameLogic {
       snake.tiles.push(newPosition);
     }
 
-    if (!state.applePos) {
+    // Process diet effects
+    for (const snake of state.snakes) {
+      this._processDietEffect(snake);
+    }
+
+    if (!state.apple) {
       this._actionNewApple();
     }
 
@@ -302,7 +337,68 @@ export class GameLogic {
 
       break;
     }
-    this._state.applePos = newPos;
+
+    // Determine apple type (80% normal, 20% diet)
+    const appleType = this._prng() < 0.8 ? AppleType.NORMAL : AppleType.DIET;
+
+    this._state.apple = {
+      position: newPos,
+      type: appleType,
+    };
+  }
+
+  private _applyAppleEffect(
+    snake: IGameStateSnake,
+    appleType: AppleType
+  ): void {
+    switch (appleType) {
+      case AppleType.NORMAL:
+        snake.length += 2;
+        break;
+      case AppleType.DIET:
+        this._applyDietEffect(snake);
+        break;
+      default:
+        assertNever(appleType);
+    }
+  }
+
+  private _applyDietEffect(snake: IGameStateSnake): void {
+    if (snake.dietEffect) {
+      return;
+    }
+
+    const originalLength = snake.length;
+    const targetLength = Math.max(1, Math.floor(originalLength * 0.9));
+    const totalReduction = originalLength - targetLength;
+    const reductionPerStep = Math.ceil(totalReduction / 5);
+
+    snake.dietEffect = {
+      originalLength,
+      targetLength,
+      stepsRemaining: 5,
+      reductionPerStep,
+    };
+  }
+
+  private _processDietEffect(snake: IGameStateSnake): void {
+    if (!snake.dietEffect) {
+      return;
+    }
+
+    const effect = snake.dietEffect;
+    effect.stepsRemaining--;
+
+    if (effect.stepsRemaining <= 0) {
+      snake.length = effect.targetLength;
+      snake.dietEffect = undefined;
+    } else {
+      const newLength = Math.max(
+        effect.targetLength,
+        snake.length - effect.reductionPerStep
+      );
+      snake.length = newLength;
+    }
   }
 
   private _actionNewDir(snakeIdx: number, newDir: EDirection): boolean {

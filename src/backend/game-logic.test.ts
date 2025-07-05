@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { EDirection, IGameStage, GameLogic } from './game-logic';
+import { EDirection, IGameStage, GameLogic, AppleType } from './game-logic';
 import { Vector } from './utils';
 
 // Private method tests
@@ -19,7 +19,7 @@ describe('GameLogic - Private Methods', () => {
 
       // Modify state
       game.state.speed = 20;
-      game.state.applePos = new Vector(3, 3);
+      game.state.apple = { position: new Vector(3, 3), type: AppleType.NORMAL };
       game.state.snakes[0].length = 8;
       game.state.snakes[0].tiles = [new Vector(4, 4), new Vector(3, 4)];
       game.state.snakes[0].score = 5; // Set a score to test reset
@@ -32,7 +32,7 @@ describe('GameLogic - Private Methods', () => {
 
       // Verify reset state
       expect(game.state.speed).toBe(12); // Default speed
-      expect(game.state.applePos).toBeNull();
+      expect(game.state.apple).toBeNull();
       expect(game.state.snakes[0].length).toBe(4); // Default length
       expect(game.state.snakes[0].tiles).toEqual([]);
       expect(game.state.snakes[0].score).toBe(0); // Score should reset to 0
@@ -40,13 +40,13 @@ describe('GameLogic - Private Methods', () => {
 
       // Test PRNG reset by generating apples
       game.advanceTime(100);
-      const firstApplePos = game.state.applePos?.clone();
+      const firstApple = game.state.apple;
 
       resetState();
       game.advanceTime(100);
 
       // Apple positions should match after reset due to same PRNG sequence
-      expect(game.state.applePos).toEqual(firstApplePos);
+      expect(game.state.apple).toEqual(firstApple);
     });
   });
 
@@ -76,26 +76,26 @@ describe('GameLogic - Private Methods', () => {
 
       // Generate multiple apples to verify placement
       for (let i = 0; i < 10; i++) {
-        game.state.applePos = null;
+        game.state.apple = null;
         actionNewApple();
 
-        const applePos = game.state.applePos;
-        expect(applePos).not.toBeNull();
+        const apple = game.state.apple;
+        expect(apple).not.toBeNull();
 
         // Verify apple is within bounds
-        // We know applePos is not null here because we just generated it
-        const apple = game.state.applePos!;
-        expect(apple.x).toBeGreaterThanOrEqual(0);
-        expect(apple.x).toBeLessThan(stage.xTiles);
-        expect(apple.y).toBeGreaterThanOrEqual(0);
-        expect(apple.y).toBeLessThan(stage.yTiles);
+        // We know apple is not null here because we just generated it
+        const applePos = game.state.apple!.position;
+        expect(applePos.x).toBeGreaterThanOrEqual(0);
+        expect(applePos.x).toBeLessThan(stage.xTiles);
+        expect(applePos.y).toBeGreaterThanOrEqual(0);
+        expect(applePos.y).toBeLessThan(stage.yTiles);
 
         // Verify apple is not on blocks
-        expect(stage.blocks.some(block => block.equals(applePos!))).toBeFalsy();
+        expect(stage.blocks.some(block => block.equals(applePos))).toBeFalsy();
 
         // Verify apple is not on snake
         expect(
-          game.state.snakes[0].tiles.some(tile => tile.equals(applePos!))
+          game.state.snakes[0].tiles.some(tile => tile.equals(applePos))
         ).toBeFalsy();
       }
     });
@@ -123,14 +123,14 @@ describe('GameLogic - Private Methods', () => {
       const applePositions2: Vector[] = [];
 
       for (let i = 0; i < 5; i++) {
-        game1.state.applePos = null;
-        game2.state.applePos = null;
+        game1.state.apple = null;
+        game2.state.apple = null;
 
         actionNewApple1();
         actionNewApple2();
 
-        applePositions1.push(game1.state.applePos!.clone());
-        applePositions2.push(game2.state.applePos!.clone());
+        applePositions1.push(game1.state.apple!.position.clone());
+        applePositions2.push(game2.state.apple!.position.clone());
       }
 
       // Verify apple sequences match
