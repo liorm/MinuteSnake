@@ -213,13 +213,13 @@ export class Trainer {
       // Initialize population
       const population = this.geneticAlgorithm.initializePopulation();
 
-      console.log(`Starting training session: ${this.currentSessionId}`);
-      console.log(`Population size: ${population.length}`);
-      console.log(`Max generations: ${this.config.genetic.maxGenerations}`);
-      console.log(
+      console.warn(`Starting training session: ${this.currentSessionId}`);
+      console.warn(`Population size: ${population.length}`);
+      console.warn(`Max generations: ${this.config.genetic.maxGenerations}`);
+      console.warn(
         `Network architecture: [${this.config.networkArchitecture.join(', ')}]`
       );
-      console.log('');
+      console.warn('');
 
       // Main training loop
       for (
@@ -228,7 +228,7 @@ export class Trainer {
         generation++
       ) {
         if (!this.isTraining) {
-          console.log('Training cancelled by user');
+          console.warn('Training cancelled by user');
           break;
         }
 
@@ -284,7 +284,7 @@ export class Trainer {
 
         // Check early stopping conditions
         if (this.shouldStopEarly(generation)) {
-          console.log(`Early stopping triggered at generation ${generation}`);
+          console.warn(`Early stopping triggered at generation ${generation}`);
           break;
         }
 
@@ -307,8 +307,8 @@ export class Trainer {
         );
       }
 
-      console.log(`Training completed! Session ID: ${this.currentSessionId}`);
-      console.log(
+      console.warn(`Training completed! Session ID: ${this.currentSessionId}`);
+      console.warn(
         `Best fitness achieved: ${finalBestIndividual?.fitness.toFixed(4)}`
       );
 
@@ -333,11 +333,11 @@ export class Trainer {
    */
   public stopTraining(): void {
     if (!this.isTraining) {
-      console.log('No training session is currently running');
+      console.warn('No training session is currently running');
       return;
     }
 
-    console.log('Stopping training...');
+    console.warn('Stopping training...');
     this.isTraining = false;
 
     if (this.currentSessionId) {
@@ -408,10 +408,9 @@ export class Trainer {
   ): Promise<void> {
     const filename = `checkpoint_gen${generation}_fitness${individual.fitness.toFixed(4)}.json`;
     await WeightLoader.saveWeights(individual.weights, filename, {
-      generation,
-      fitness: individual.fitness,
-      sessionId: this.currentSessionId || '',
-      timestamp: new Date().toISOString(),
+      trainedGenerations: generation,
+      fitnessScore: individual.fitness,
+      trainingDate: new Date().toISOString(),
     });
   }
 
@@ -424,11 +423,9 @@ export class Trainer {
   ): Promise<void> {
     const filename = `best_${suffix}_fitness${individual.fitness.toFixed(4)}.json`;
     await WeightLoader.saveWeights(individual.weights, filename, {
-      generation: individual.generation,
-      fitness: individual.fitness,
-      sessionId: this.currentSessionId || '',
-      timestamp: new Date().toISOString(),
-      trainingComplete: true,
+      trainedGenerations: individual.generation,
+      fitnessScore: individual.fitness,
+      trainingDate: new Date().toISOString(),
     });
   }
 
@@ -513,8 +510,8 @@ export class Trainer {
       throw new Error('Config loading not supported in browser environment');
     }
 
-    const fs = await import('fs');
-    const configData = await fs.promises.readFile(filePath, 'utf8');
+    const { promises: fs } = await import('fs');
+    const configData = await fs.readFile(filePath, 'utf8');
     const userConfig = JSON.parse(configData);
 
     const trainer = new Trainer(userConfig);
@@ -545,8 +542,8 @@ export class Trainer {
       URL.revokeObjectURL(url);
     } else {
       // Node.js environment - write to file
-      const fs = await import('fs');
-      await fs.promises.writeFile(filePath, configData, 'utf8');
+      const { promises: fs } = await import('fs');
+      await fs.writeFile(filePath, configData, 'utf8');
     }
   }
 }

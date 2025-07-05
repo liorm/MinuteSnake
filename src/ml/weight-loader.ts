@@ -683,7 +683,7 @@ export class WeightLoader {
     } else {
       // Node.js environment - write to file (but don't actually write in tests)
       // For testing, we'll just log the save operation
-      console.log(`Would save weights to ${filename}`);
+      console.warn(`Would save weights to ${filename}`);
 
       // In a real implementation, you might want to write to a specific directory
       // const fs = await import('fs');

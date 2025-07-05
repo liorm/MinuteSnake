@@ -339,8 +339,8 @@ export class DataCollector {
       URL.revokeObjectURL(url);
     } else {
       // Node.js environment - write to file
-      const fs = await import('fs');
-      await fs.promises.writeFile(filePath, jsonData, 'utf8');
+      const { promises: fs } = await import('fs');
+      await fs.writeFile(filePath, jsonData, 'utf8');
     }
   }
 
@@ -355,8 +355,8 @@ export class DataCollector {
       throw new Error('File loading not supported in browser environment');
     } else {
       // Node.js environment - read from file
-      const fs = await import('fs');
-      jsonData = await fs.promises.readFile(filePath, 'utf8');
+      const { promises: fs } = await import('fs');
+      jsonData = await fs.readFile(filePath, 'utf8');
     }
 
     const exportData: TrainingDataExport = JSON.parse(jsonData);
@@ -433,15 +433,15 @@ export class DataCollector {
     const stats = generationData.stats;
     const evaluationTime = generationData.totalEvaluationTime;
 
-    console.log(
+    console.warn(
       `Generation ${generation + 1}/${session.config.maxGenerations}:`
     );
-    console.log(`  Best Fitness: ${stats.bestFitness.toFixed(4)}`);
-    console.log(`  Avg Fitness:  ${stats.averageFitness.toFixed(4)}`);
-    console.log(`  Diversity:    ${stats.diversity.toFixed(4)}`);
-    console.log(`  Eval Time:    ${(evaluationTime / 1000).toFixed(2)}s`);
-    console.log(`  Session Best: ${session.bestFitness.toFixed(4)}`);
-    console.log('');
+    console.warn(`  Best Fitness: ${stats.bestFitness.toFixed(4)}`);
+    console.warn(`  Avg Fitness:  ${stats.averageFitness.toFixed(4)}`);
+    console.warn(`  Diversity:    ${stats.diversity.toFixed(4)}`);
+    console.warn(`  Eval Time:    ${(evaluationTime / 1000).toFixed(2)}s`);
+    console.warn(`  Session Best: ${session.bestFitness.toFixed(4)}`);
+    console.warn('');
   }
 
   /**
