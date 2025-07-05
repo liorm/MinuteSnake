@@ -47,8 +47,8 @@ Implement a neural network-based AI agent for MinuteSnake with a training system
 - **Training Orchestrator**: Configurable parameters, early stopping, checkpointing, parallel evaluation
 - **Comprehensive Testing**: Full test coverage for all training components with deterministic behavior
 
-### Phase 3: Integration & CLI Tools
-**Subagent Task**: Add training commands and complete integration
+### Phase 3A: CLI Tools & Training Scripts
+**Subagent Task**: Implement training CLI commands and scripts
 
 #### Tasks:
 - [ ] Add training CLI commands to package.json scripts
@@ -57,15 +57,32 @@ Implement a neural network-based AI agent for MinuteSnake with a training system
 - [ ] Generate sample trained weights for demonstration
 - [ ] Add comprehensive test coverage for training system
 - [ ] Update CLAUDE.md with training instructions and architecture details
-- [ ] Add performance benchmarking tools
 
-**Commit**: `feat: add training CLI tools and complete NN agent integration`
+**Commit**: `feat: add training CLI tools and scripts`
 
 #### Technical Details:
-- **CLI Commands**: `npm run train`, `npm run evaluate`, `npm run benchmark`
-- **Training Script**: Configurable training parameters, progress monitoring
-- **Evaluation Tools**: Performance comparison between AI types
-- **Documentation**: Complete usage instructions and architecture overview
+- **CLI Commands**: `npm run train`, `npm run evaluate`
+- **Training Script**: Configurable training parameters, progress monitoring, checkpointing
+- **Evaluation Script**: Performance comparison between AI types, statistical analysis
+- **Sample Weights**: Pre-trained demonstration weights with different skill levels
+- **Testing**: Full test coverage for training scripts and CLI integration
+- **Documentation**: Update CLAUDE.md with training commands and basic usage
+
+### Phase 3B: Documentation & Performance Tools
+**Subagent Task**: Complete documentation and add performance benchmarking
+
+#### Tasks:
+- [ ] Add performance benchmarking tools
+- [ ] Create training tutorial and best practices guide
+- [ ] Add weight file validation and management tools
+
+**Commit**: `feat: add benchmarking tools and complete NN documentation`
+
+#### Technical Details:
+- **Documentation**: Complete usage instructions, training guide, architecture overview
+- **Benchmarking**: `npm run benchmark` command with performance metrics
+- **Weight Management**: Tools for validating, comparing, and organizing weight files
+- **Tutorial**: Step-by-step training guide with examples and troubleshooting
 
 ## Architecture Overview
 
