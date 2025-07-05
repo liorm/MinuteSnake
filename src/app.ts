@@ -1,4 +1,4 @@
-import { GameEngine } from './game-engine.js';
+import { GameEngine } from './game-engine';
 
 /**
  * Main application entry point that bootstraps the game.

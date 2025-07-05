@@ -1,4 +1,4 @@
-import { Vector } from './utils.js';
+import { Vector } from './utils';
 import seedrandom from 'seedrandom';
 
 function assertNever(x: never): never {

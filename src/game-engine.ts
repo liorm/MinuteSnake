@@ -1,20 +1,20 @@
-import { EDirection, GameInput, IGameStage } from './backend/game-logic.js';
-import { IActor, HumanActor, AIActor } from './actors.js';
-import { GameRenderer } from './game-renderer.js';
-import { GameState } from './game-state.js';
+import { EDirection, GameInput, IGameStage } from './backend/game-logic';
+import { IActor, HumanActor, AIActor } from './actors/index';
+import { GameRenderer } from './game-renderer';
+import { GameState } from './game-state';
 import {
   WelcomeRenderer,
   WelcomeScreenCallbacks,
   PlayerConfiguration,
-} from './welcome-renderer.js';
+} from './welcome-renderer';
 
 const MAX_INPUT_ITERATIONS = 10;
 import {
   GameHandlerBase,
   LiveHandler,
   PlaybackHandler,
-} from './backend/state-handlers.js';
-import { Vector } from './backend/utils.js';
+} from './backend/state-handlers';
+import { Vector } from './backend/utils';
 
 /**
  * Core game engine that coordinates rendering, input handling, and game state.
