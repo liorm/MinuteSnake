@@ -27,6 +27,24 @@ export enum EDirection {
 }
 
 /**
+ * Represents different types of apples that can appear in the game.
+ * Each apple type has different effects when consumed by the snake.
+ */
+export enum AppleType {
+  NORMAL = 'normal',
+  DIET = 'diet',
+}
+
+/**
+ * Represents a game apple with its position and type.
+ * Different apple types provide different effects when consumed.
+ */
+export interface IApple {
+  position: Vector;
+  type: AppleType;
+}
+
+/**
  * Basic game configuration options defining the playing field size
  * and random number generation seed for deterministic gameplay.
  */
@@ -54,12 +72,13 @@ export interface IGameStage extends IGameOptions {
 
 /**
  * Represents the current state of a snake in the game.
- * Tracks position, length, occupied tiles, current direction,
+ * Tracks position, current and target length, occupied tiles, current direction,
  * queued direction changes, and score.
  */
 export interface IGameStateSnake {
   position: Vector;
   length: number;
+  targetLength: number;
   tiles: Vector[];
   dir: EDirection;
   pendingDirs: EDirection[];
@@ -68,13 +87,13 @@ export interface IGameStateSnake {
 
 /**
  * Complete game state including all snakes, obstacles,
- * apple position, game speed and win/loss condition.
+ * apple information, game speed and win/loss condition.
  * Used by both the game logic and renderer.
  */
 export interface IGameState {
   blocks: Vector[];
   speed: number;
-  applePos: Vector | null;
+  apple: IApple | null;
   snakes: IGameStateSnake[];
   gameOver: boolean;
 }
@@ -155,10 +174,11 @@ export class GameLogic {
     return {
       blocks,
       speed: 12,
-      applePos: null,
+      apple: null,
       snakes: this._stage.snakes.map(snake => ({
         position: snake.position,
         length: 4,
+        targetLength: 4,
         tiles: [],
         dir: snake.direction,
         pendingDirs: [],
@@ -249,11 +269,14 @@ export class GameLogic {
       snake.tiles.push(newPosition);
 
       // Ate an apple?
-      if (snake.position.equals(state.applePos)) {
-        state.applePos = null;
-        snake.length += 2;
+      if (state.apple && snake.position.equals(state.apple.position)) {
+        this._applyAppleEffect(snake, state.apple.type);
+        state.apple = null;
         snake.score += 1;
       }
+
+      // Gradually adjust length towards target
+      this._adjustSnakeLength(snake);
 
       while (snake.tiles.length > snake.length) {
         snake.tiles.splice(0, 1);
@@ -273,7 +296,7 @@ export class GameLogic {
       snake.tiles.push(newPosition);
     }
 
-    if (!state.applePos) {
+    if (!state.apple) {
       this._actionNewApple();
     }
 
@@ -302,7 +325,44 @@ export class GameLogic {
 
       break;
     }
-    this._state.applePos = newPos;
+
+    // Determine apple type (90% normal, 10% diet)
+    const appleType = this._prng() < 0.9 ? AppleType.NORMAL : AppleType.DIET;
+
+    this._state.apple = {
+      position: newPos,
+      type: appleType,
+    };
+  }
+
+  private _applyAppleEffect(
+    snake: IGameStateSnake,
+    appleType: AppleType
+  ): void {
+    switch (appleType) {
+      case AppleType.NORMAL:
+        snake.targetLength += 3;
+        break;
+      case AppleType.DIET:
+        snake.targetLength = Math.max(1, Math.floor(snake.targetLength * 0.5));
+        break;
+      default:
+        assertNever(appleType);
+    }
+  }
+
+  private _adjustSnakeLength(snake: IGameStateSnake): void {
+    if (snake.length === snake.targetLength) {
+      return;
+    }
+
+    if (snake.length < snake.targetLength) {
+      // Growing: increase by 1 each step
+      snake.length = Math.min(snake.targetLength, snake.length + 1);
+    } else {
+      // Shrinking: decrease by 1 each step
+      snake.length = Math.max(snake.targetLength, snake.length - 1);
+    }
   }
 
   private _actionNewDir(snakeIdx: number, newDir: EDirection): boolean {

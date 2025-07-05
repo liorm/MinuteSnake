@@ -18,13 +18,14 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.blocks.length).toBeGreaterThan(1);
     expect(game.state.blocks).toContainEqual(new Vector(3, 3));
     expect(game.state.speed).toBe(12);
-    expect(game.state.applePos).toBeNull();
+    expect(game.state.apple).toBeNull();
     expect(game.state.gameOver).toBe(false);
 
     expect(game.state.snakes.length).toBe(1);
     expect(game.state.snakes[0].position).toEqual(new Vector(4, 4));
     expect(game.state.snakes[0].dir).toBe(EDirection.RIGHT);
     expect(game.state.snakes[0].length).toBe(4);
+    expect(game.state.snakes[0].targetLength).toBe(4);
     expect(game.state.snakes[0].tiles).toEqual([]);
     expect(game.state.snakes[0].pendingDirs).toEqual([]);
     expect(game.state.snakes[0].score).toBe(0);
@@ -46,14 +47,14 @@ describe('GameLogic - Constructor', () => {
     game1.advanceTime(1000);
     game2.advanceTime(1000);
 
-    expect(game1.state.applePos).toEqual(game2.state.applePos);
+    expect(game1.state.apple).toEqual(game2.state.apple);
 
-    game1.state.applePos = null;
-    game2.state.applePos = null;
+    game1.state.apple = null;
+    game2.state.apple = null;
     game1.advanceTime(1000);
     game2.advanceTime(1000);
 
-    expect(game1.state.applePos).toEqual(game2.state.applePos);
+    expect(game1.state.apple).toEqual(game2.state.apple);
   });
 
   it('should create initial blocks based on xTiles, yTiles, and wallHoles', () => {
@@ -115,6 +116,7 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.snakes[0].position).toEqual(new Vector(2, 2));
     expect(game.state.snakes[0].dir).toBe(EDirection.RIGHT);
     expect(game.state.snakes[0].length).toBe(4);
+    expect(game.state.snakes[0].targetLength).toBe(4);
     expect(game.state.snakes[0].tiles).toEqual([]);
     expect(game.state.snakes[0].pendingDirs).toEqual([]);
     expect(game.state.snakes[0].score).toBe(0);
@@ -122,6 +124,7 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.snakes[1].position).toEqual(new Vector(7, 5));
     expect(game.state.snakes[1].dir).toBe(EDirection.LEFT);
     expect(game.state.snakes[1].length).toBe(4);
+    expect(game.state.snakes[1].targetLength).toBe(4);
     expect(game.state.snakes[1].tiles).toEqual([]);
     expect(game.state.snakes[1].pendingDirs).toEqual([]);
     expect(game.state.snakes[1].score).toBe(0);
