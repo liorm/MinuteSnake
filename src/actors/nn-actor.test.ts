@@ -5,7 +5,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NNActor, DEFAULT_NN_ACTOR_CONFIG } from './nn-actor';
 import { NeuralNetwork } from '../ml/neural-network';
-import { IGameState, IGameStateSnake, EDirection, AppleType } from '../backend/game-logic';
+import {
+  IGameState,
+  IGameStateSnake,
+  EDirection,
+  AppleType,
+} from '../backend/game-logic';
 
 describe('NNActor', () => {
   let mockNeuralNetwork: NeuralNetwork;
@@ -63,7 +68,9 @@ describe('NNActor', () => {
 
       const config = actor.getConfig();
       expect(config.decisionThreshold).toBe(0.5);
-      expect(config.useProbabilisticSelection).toBe(DEFAULT_NN_ACTOR_CONFIG.useProbabilisticSelection);
+      expect(config.useProbabilisticSelection).toBe(
+        DEFAULT_NN_ACTOR_CONFIG.useProbabilisticSelection
+      );
     });
 
     it('should throw error for negative snake index', () => {
@@ -152,7 +159,12 @@ describe('NNActor', () => {
       if (result !== null) {
         expect(result.inputType).toBe('direction');
         expect(result.snakeIdx).toBe(0);
-        expect([EDirection.UP, EDirection.DOWN, EDirection.LEFT, EDirection.RIGHT]).toContain(result.dir);
+        expect([
+          EDirection.UP,
+          EDirection.DOWN,
+          EDirection.LEFT,
+          EDirection.RIGHT,
+        ]).toContain(result.dir);
         expect(result.dir).not.toBe(EDirection.LEFT); // Should not suggest opposite direction
       }
     });
@@ -190,7 +202,7 @@ describe('NNActor', () => {
         firstResult = actor.onStateUpdate(basicGameState);
         attempts++;
       }
-      
+
       // If we got a direction change, subsequent calls should return null
       if (firstResult !== null) {
         const result = actor.onStateUpdate(basicGameState);
@@ -230,7 +242,7 @@ describe('NNActor', () => {
       });
 
       const results: (EDirection | null)[] = [];
-      
+
       // Run multiple times with same state
       for (let i = 0; i < 5; i++) {
         actor.reset(); // Reset to ensure same conditions
@@ -256,7 +268,7 @@ describe('NNActor', () => {
       });
 
       const results: (EDirection | null)[] = [];
-      
+
       // Run multiple times with same state
       for (let i = 0; i < 20; i++) {
         actor.reset();
@@ -278,7 +290,7 @@ describe('NNActor', () => {
       });
 
       let changeCount = 0;
-      
+
       // Run multiple times
       for (let i = 0; i < 10; i++) {
         actor.reset();
@@ -305,13 +317,13 @@ describe('NNActor', () => {
       actor.onStateUpdate(basicGameState);
       actor.onStateUpdate(basicGameState);
       actor.onStateUpdate(basicGameState);
-      
+
       // Reset should reset internal counters
       actor.reset();
-      
+
       // The reset method should exist and not throw
       expect(() => actor.reset()).not.toThrow();
-      
+
       // Verify the actor is still functional after reset
       const config = actor.getConfig();
       expect(config.snakeIndex).toBe(0);
@@ -372,19 +384,25 @@ describe('NNActor', () => {
           {
             inputSize: 64,
             outputSize: 128,
-            weights: Array.from({ length: 128 }, () => Array.from({ length: 64 }, () => 0.1)),
+            weights: Array.from({ length: 128 }, () =>
+              Array.from({ length: 64 }, () => 0.1)
+            ),
             biases: Array.from({ length: 128 }, () => 0.1),
           },
           {
             inputSize: 128,
             outputSize: 64,
-            weights: Array.from({ length: 64 }, () => Array.from({ length: 128 }, () => 0.1)),
+            weights: Array.from({ length: 64 }, () =>
+              Array.from({ length: 128 }, () => 0.1)
+            ),
             biases: Array.from({ length: 64 }, () => 0.1),
           },
           {
             inputSize: 64,
             outputSize: 4,
-            weights: Array.from({ length: 4 }, () => Array.from({ length: 64 }, () => 0.1)),
+            weights: Array.from({ length: 4 }, () =>
+              Array.from({ length: 64 }, () => 0.1)
+            ),
             biases: [0.1, 0.1, 0.1, 0.1],
           },
         ],
@@ -429,7 +447,7 @@ describe('NNActor', () => {
   describe('edge cases', () => {
     it('should handle game state with no apple', () => {
       const stateWithoutApple = { ...basicGameState, apple: null };
-      
+
       const actor = new NNActor({
         snakeIndex: 0,
         neuralNetwork: mockNeuralNetwork,
@@ -469,7 +487,7 @@ describe('NNActor', () => {
 
     it('should handle very small networks', () => {
       const smallNetwork = NeuralNetwork.createRandom([64, 4]);
-      
+
       const actor = new NNActor({
         snakeIndex: 0,
         neuralNetwork: smallNetwork,
@@ -481,7 +499,7 @@ describe('NNActor', () => {
 
     it('should handle extreme game speeds', () => {
       const extremeSpeedState = { ...basicGameState, speed: 1000 };
-      
+
       const actor = new NNActor({
         snakeIndex: 0,
         neuralNetwork: mockNeuralNetwork,
@@ -506,39 +524,53 @@ describe('NNActor', () => {
         // Snake near wall
         {
           ...basicGameState,
-          snakes: [{
-            ...basicSnake,
-            position: { x: 1, y: 3 }, // Near left wall
-            dir: EDirection.LEFT,
-          }],
+          snakes: [
+            {
+              ...basicSnake,
+              position: { x: 1, y: 3 }, // Near left wall
+              dir: EDirection.LEFT,
+            },
+          ],
         },
         // Snake near apple
         {
           ...basicGameState,
-          snakes: [{
-            ...basicSnake,
-            position: { x: 7, y: 7 }, // Near apple at (8, 7)
-          }],
+          snakes: [
+            {
+              ...basicSnake,
+              position: { x: 7, y: 7 }, // Near apple at (8, 7)
+            },
+          ],
         },
         // Long snake
         {
           ...basicGameState,
-          snakes: [{
-            ...basicSnake,
-            length: 20,
-            tiles: Array.from({ length: 15 }, (_, i) => ({ x: 5 - i - 1, y: 3 })),
-          }],
+          snakes: [
+            {
+              ...basicSnake,
+              length: 20,
+              tiles: Array.from({ length: 15 }, (_, i) => ({
+                x: 5 - i - 1,
+                y: 3,
+              })),
+            },
+          ],
         },
       ];
 
-      scenarios.forEach((scenario) => {
+      scenarios.forEach(scenario => {
         actor.reset();
         const result = actor.onStateUpdate(scenario);
-        
+
         // Should return valid direction or null
         if (result !== null) {
           expect(result.inputType).toBe('direction');
-          expect([EDirection.UP, EDirection.DOWN, EDirection.LEFT, EDirection.RIGHT]).toContain(result.dir);
+          expect([
+            EDirection.UP,
+            EDirection.DOWN,
+            EDirection.LEFT,
+            EDirection.RIGHT,
+          ]).toContain(result.dir);
         }
       });
     });

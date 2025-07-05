@@ -9,8 +9,8 @@
 export interface NetworkLayer {
   inputSize: number;
   outputSize: number;
-  weights: number[][];  // weights[outputNeuron][inputNeuron]
-  biases: number[];     // biases[outputNeuron]
+  weights: number[][]; // weights[outputNeuron][inputNeuron]
+  biases: number[]; // biases[outputNeuron]
 }
 
 /**
@@ -77,11 +77,11 @@ export class NeuralNetwork {
     for (let i = 1; i < this.architecture.layers.length; i++) {
       const prevLayer = this.architecture.layers[i - 1];
       const currentLayer = this.architecture.layers[i];
-      
+
       if (prevLayer.outputSize !== currentLayer.inputSize) {
         throw new Error(
           `Layer size mismatch: layer ${i - 1} output (${prevLayer.outputSize}) ` +
-          `does not match layer ${i} input (${currentLayer.inputSize})`
+            `does not match layer ${i} input (${currentLayer.inputSize})`
         );
       }
     }
@@ -91,7 +91,7 @@ export class NeuralNetwork {
       if (layer.weights.length !== layer.outputSize) {
         throw new Error(`Layer ${layerIdx}: weights array length mismatch`);
       }
-      
+
       layer.weights.forEach((neuronWeights, neuronIdx) => {
         if (neuronWeights.length !== layer.inputSize) {
           throw new Error(
@@ -108,7 +108,7 @@ export class NeuralNetwork {
 
   /**
    * Performs forward propagation through the neural network.
-   * 
+   *
    * @param input Input vector (must match first layer input size)
    * @returns Output vector from the network
    */
@@ -116,17 +116,21 @@ export class NeuralNetwork {
     if (input.length !== this.architecture.layers[0].inputSize) {
       throw new Error(
         `Input size mismatch: expected ${this.architecture.layers[0].inputSize}, ` +
-        `got ${input.length}`
+          `got ${input.length}`
       );
     }
 
     let currentOutput = input;
 
     // Process through all layers
-    for (let layerIdx = 0; layerIdx < this.architecture.layers.length; layerIdx++) {
+    for (
+      let layerIdx = 0;
+      layerIdx < this.architecture.layers.length;
+      layerIdx++
+    ) {
       const layer = this.architecture.layers[layerIdx];
       const isOutputLayer = layerIdx === this.architecture.layers.length - 1;
-      
+
       currentOutput = this.processLayer(layer, currentOutput, isOutputLayer);
     }
 
@@ -137,8 +141,8 @@ export class NeuralNetwork {
    * Processes a single layer of the neural network.
    */
   private processLayer(
-    layer: NetworkLayer, 
-    input: number[], 
+    layer: NetworkLayer,
+    input: number[],
     isOutputLayer: boolean
   ): number[] {
     const output: number[] = [];
@@ -146,15 +150,15 @@ export class NeuralNetwork {
     // Calculate each neuron's output
     for (let neuronIdx = 0; neuronIdx < layer.outputSize; neuronIdx++) {
       let sum = 0;
-      
+
       // Weighted sum of inputs
       for (let inputIdx = 0; inputIdx < layer.inputSize; inputIdx++) {
         sum += input[inputIdx] * layer.weights[neuronIdx][inputIdx];
       }
-      
+
       // Add bias
       sum += layer.biases[neuronIdx];
-      
+
       output.push(sum);
     }
 
@@ -186,7 +190,8 @@ export class NeuralNetwork {
    * Gets the output size of the network (last layer output size).
    */
   public getOutputSize(): number {
-    const lastLayer = this.architecture.layers[this.architecture.layers.length - 1];
+    const lastLayer =
+      this.architecture.layers[this.architecture.layers.length - 1];
     return lastLayer.outputSize;
   }
 
@@ -200,19 +205,22 @@ export class NeuralNetwork {
     randomSeed?: number
   ): NeuralNetwork {
     if (layerSizes.length < 2) {
-      throw new Error('Neural network must have at least 2 layers (input and output)');
+      throw new Error(
+        'Neural network must have at least 2 layers (input and output)'
+      );
     }
 
     // Use seeded random if provided, otherwise use Math.random
-    const random = randomSeed !== undefined 
-      ? (() => {
-          let seed = randomSeed;
-          return (): number => {
-            seed = (seed * 9301 + 49297) % 233280;
-            return seed / 233280;
-          };
-        })()
-      : Math.random;
+    const random =
+      randomSeed !== undefined
+        ? (() => {
+            let seed = randomSeed;
+            return (): number => {
+              seed = (seed * 9301 + 49297) % 233280;
+              return seed / 233280;
+            };
+          })()
+        : Math.random;
 
     const layers: NetworkLayer[] = [];
 

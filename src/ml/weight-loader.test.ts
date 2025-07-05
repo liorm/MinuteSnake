@@ -3,11 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  WeightLoader, 
-  WeightFileFormat, 
+import {
+  WeightLoader,
+  WeightFileFormat,
   WeightMetadata,
-  DEFAULT_WEIGHT_LOADER_CONFIG 
+  DEFAULT_WEIGHT_LOADER_CONFIG,
 } from './weight-loader';
 import { NetworkArchitecture } from './neural-network';
 
@@ -136,7 +136,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Unsupported version'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Unsupported version'))
+      ).toBe(true);
     });
 
     it('should reject missing version', () => {
@@ -145,7 +147,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Missing version'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Missing version'))
+      ).toBe(true);
     });
   });
 
@@ -156,7 +160,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Missing metadata'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Missing metadata'))
+      ).toBe(true);
     });
 
     it('should require architecture in metadata', () => {
@@ -168,7 +174,11 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Invalid or missing architecture'))).toBe(true);
+      expect(
+        result.errors.some(error =>
+          error.includes('Invalid or missing architecture')
+        )
+      ).toBe(true);
     });
 
     it('should require at least 2 layers in architecture', () => {
@@ -182,7 +192,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('at least 2 layers'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('at least 2 layers'))
+      ).toBe(true);
     });
 
     it('should require positive integer layer sizes', () => {
@@ -196,17 +208,26 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('positive integers'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('positive integers'))
+      ).toBe(true);
     });
   });
 
   describe('layer validation', () => {
     it('should require layers to be an array', () => {
-      const invalidData = { ...validWeightData, layers: 'not an array' as unknown as WeightFileFormat['layers'] };
+      const invalidData = {
+        ...validWeightData,
+        layers: 'not an array' as unknown as WeightFileFormat['layers'],
+      };
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Layers field must be an array'))).toBe(true);
+      expect(
+        result.errors.some(error =>
+          error.includes('Layers field must be an array')
+        )
+      ).toBe(true);
     });
 
     it('should require at least one layer', () => {
@@ -214,7 +235,11 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Must have at least one layer'))).toBe(true);
+      expect(
+        result.errors.some(error =>
+          error.includes('Must have at least one layer')
+        )
+      ).toBe(true);
     });
 
     it('should validate layer structure', () => {
@@ -227,7 +252,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Must be an object'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Must be an object'))
+      ).toBe(true);
     });
 
     it('should require all layer fields', () => {
@@ -237,11 +264,16 @@ describe('WeightLoader', () => {
         weights: [[0.1, 0.2, 0.3]],
         // Missing biases
       };
-      const invalidData = { ...validWeightData, layers: [invalidLayer as WeightFileFormat['layers'][0]] };
+      const invalidData = {
+        ...validWeightData,
+        layers: [invalidLayer as WeightFileFormat['layers'][0]],
+      };
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Missing required field'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Missing required field'))
+      ).toBe(true);
     });
   });
 
@@ -266,7 +298,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('weights array length'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('weights array length'))
+      ).toBe(true);
     });
 
     it('should validate individual neuron weights dimensions', () => {
@@ -287,7 +321,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('weights length'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('weights length'))
+      ).toBe(true);
     });
 
     it('should validate biases array dimensions', () => {
@@ -308,7 +344,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('biases array length'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('biases array length'))
+      ).toBe(true);
     });
   });
 
@@ -320,13 +358,21 @@ describe('WeightLoader', () => {
           {
             inputSize: 3,
             outputSize: 4,
-            weights: [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6], [0.7, 0.8, 0.9], [0.2, 0.4, 0.6]],
+            weights: [
+              [0.1, 0.2, 0.3],
+              [0.4, 0.5, 0.6],
+              [0.7, 0.8, 0.9],
+              [0.2, 0.4, 0.6],
+            ],
             biases: [0.1, 0.2, 0.3, 0.4],
           },
           {
             inputSize: 5, // Should be 4 to match previous layer output
             outputSize: 2,
-            weights: [[0.1, 0.2, 0.3, 0.4, 0.5], [0.6, 0.7, 0.8, 0.9, 1.0]],
+            weights: [
+              [0.1, 0.2, 0.3, 0.4, 0.5],
+              [0.6, 0.7, 0.8, 0.9, 1.0],
+            ],
             biases: [0.1, 0.2],
           },
         ],
@@ -334,7 +380,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Layer connectivity error'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Layer connectivity error'))
+      ).toBe(true);
     });
   });
 
@@ -354,7 +402,9 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('must be a finite number'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('must be a finite number'))
+      ).toBe(true);
     });
 
     it('should validate finite bias values', () => {
@@ -372,12 +422,17 @@ describe('WeightLoader', () => {
       const result = loader.loadFromObject(invalidData);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('must be a finite number'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('must be a finite number'))
+      ).toBe(true);
     });
 
     it('should handle large weight magnitudes based on config', () => {
-      const strictLoader = new WeightLoader({ ...DEFAULT_WEIGHT_LOADER_CONFIG, maxWeightMagnitude: 1.0 });
-      
+      const strictLoader = new WeightLoader({
+        ...DEFAULT_WEIGHT_LOADER_CONFIG,
+        maxWeightMagnitude: 1.0,
+      });
+
       const dataWithLargeWeights = {
         ...validWeightData,
         layers: [
@@ -389,20 +444,22 @@ describe('WeightLoader', () => {
           },
         ],
       };
-      
+
       const result = strictLoader.loadFromObject(dataWithLargeWeights);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('exceeds limit'))).toBe(true);
+      expect(result.errors.some(error => error.includes('exceeds limit'))).toBe(
+        true
+      );
     });
 
     it('should generate warnings for large weights in non-strict mode', () => {
-      const lenientLoader = new WeightLoader({ 
-        ...DEFAULT_WEIGHT_LOADER_CONFIG, 
+      const lenientLoader = new WeightLoader({
+        ...DEFAULT_WEIGHT_LOADER_CONFIG,
         strictValidation: false,
-        maxWeightMagnitude: 1.0 
+        maxWeightMagnitude: 1.0,
       });
-      
+
       const dataWithLargeWeights = {
         ...validWeightData,
         metadata: {
@@ -418,11 +475,13 @@ describe('WeightLoader', () => {
           },
         ],
       };
-      
+
       const result = lenientLoader.loadFromObject(dataWithLargeWeights);
 
       expect(result.isValid).toBe(true);
-      expect(result.warnings.some(warning => warning.includes('large magnitude'))).toBe(true);
+      expect(
+        result.warnings.some(warning => warning.includes('large magnitude'))
+      ).toBe(true);
     });
   });
 
@@ -435,19 +494,21 @@ describe('WeightLoader', () => {
           architecture: [3, 5, 2], // Metadata says 5, but actual layer has 4
         },
       };
-      
+
       const result = loader.loadFromObject(dataWithMismatch);
 
       expect(result.isValid).toBe(false);
-      expect(result.errors.some(error => error.includes('Architecture mismatch'))).toBe(true);
+      expect(
+        result.errors.some(error => error.includes('Architecture mismatch'))
+      ).toBe(true);
     });
 
     it('should generate warnings for architecture mismatch in lenient mode', () => {
-      const lenientLoader = new WeightLoader({ 
-        ...DEFAULT_WEIGHT_LOADER_CONFIG, 
-        allowArchitectureMismatch: true 
+      const lenientLoader = new WeightLoader({
+        ...DEFAULT_WEIGHT_LOADER_CONFIG,
+        allowArchitectureMismatch: true,
       });
-      
+
       const dataWithMismatch = {
         ...validWeightData,
         metadata: {
@@ -455,11 +516,15 @@ describe('WeightLoader', () => {
           architecture: [3, 5, 2], // Metadata says 5, but actual layer has 4
         },
       };
-      
+
       const result = lenientLoader.loadFromObject(dataWithMismatch);
 
       expect(result.isValid).toBe(true);
-      expect(result.warnings.some(warning => warning.includes('Architecture mismatch'))).toBe(true);
+      expect(
+        result.warnings.some(warning =>
+          warning.includes('Architecture mismatch')
+        )
+      ).toBe(true);
     });
   });
 
@@ -470,7 +535,11 @@ describe('WeightLoader', () => {
           {
             inputSize: 2,
             outputSize: 3,
-            weights: [[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]],
+            weights: [
+              [0.1, 0.2],
+              [0.3, 0.4],
+              [0.5, 0.6],
+            ],
             biases: [0.1, 0.2, 0.3],
           },
         ],
@@ -487,7 +556,11 @@ describe('WeightLoader', () => {
       expect(parsed.version).toBe('1.0');
       expect(parsed.metadata.architecture).toEqual([2, 3]);
       expect(parsed.layers).toHaveLength(1);
-      expect(parsed.layers[0].weights).toEqual([[0.1, 0.2], [0.3, 0.4], [0.5, 0.6]]);
+      expect(parsed.layers[0].weights).toEqual([
+        [0.1, 0.2],
+        [0.3, 0.4],
+        [0.5, 0.6],
+      ]);
     });
 
     it('should create deep copies in saved data', () => {
@@ -507,7 +580,7 @@ describe('WeightLoader', () => {
       };
 
       const jsonString = loader.saveToJSON(architecture, metadata);
-      
+
       // Modify original data
       architecture.layers[0].weights[0][0] = 999;
       architecture.layers[0].biases[0] = 999;
@@ -542,7 +615,9 @@ describe('WeightLoader', () => {
       const config = loader.getConfig();
 
       expect(config.maxWeightMagnitude).toBe(5.0);
-      expect(config.strictValidation).toBe(DEFAULT_WEIGHT_LOADER_CONFIG.strictValidation); // Unchanged
+      expect(config.strictValidation).toBe(
+        DEFAULT_WEIGHT_LOADER_CONFIG.strictValidation
+      ); // Unchanged
     });
   });
 
@@ -586,13 +661,17 @@ describe('WeightLoader', () => {
           {
             inputSize: 100,
             outputSize: 200,
-            weights: Array.from({ length: 200 }, () => Array.from({ length: 100 }, () => 0.1)),
+            weights: Array.from({ length: 200 }, () =>
+              Array.from({ length: 100 }, () => 0.1)
+            ),
             biases: Array.from({ length: 200 }, () => 0.1),
           },
           {
             inputSize: 200,
             outputSize: 50,
-            weights: Array.from({ length: 50 }, () => Array.from({ length: 200 }, () => 0.1)),
+            weights: Array.from({ length: 50 }, () =>
+              Array.from({ length: 200 }, () => 0.1)
+            ),
             biases: Array.from({ length: 50 }, () => 0.1),
           },
         ],
@@ -617,19 +696,25 @@ describe('WeightLoader', () => {
           {
             inputSize: 64,
             outputSize: 128,
-            weights: Array.from({ length: 128 }, () => Array.from({ length: 64 }, () => 0.1)),
+            weights: Array.from({ length: 128 }, () =>
+              Array.from({ length: 64 }, () => 0.1)
+            ),
             biases: Array.from({ length: 128 }, () => 0.0),
           },
           {
             inputSize: 128,
             outputSize: 64,
-            weights: Array.from({ length: 64 }, () => Array.from({ length: 128 }, () => 0.1)),
+            weights: Array.from({ length: 64 }, () =>
+              Array.from({ length: 128 }, () => 0.1)
+            ),
             biases: Array.from({ length: 64 }, () => 0.0),
           },
           {
             inputSize: 64,
             outputSize: 4,
-            weights: Array.from({ length: 4 }, () => Array.from({ length: 64 }, () => 0.1)),
+            weights: Array.from({ length: 4 }, () =>
+              Array.from({ length: 64 }, () => 0.1)
+            ),
             biases: Array.from({ length: 4 }, () => 0.0),
           },
         ],

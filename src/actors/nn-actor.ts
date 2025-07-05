@@ -51,7 +51,12 @@ export class NNActor implements IActor {
   private stepCounter: number = 0;
   private gameStartTime: number = 0;
 
-  constructor(config: Partial<NNActorConfig> & { snakeIndex: number; neuralNetwork: NeuralNetwork }) {
+  constructor(
+    config: Partial<NNActorConfig> & {
+      snakeIndex: number;
+      neuralNetwork: NeuralNetwork;
+    }
+  ) {
     this.config = {
       ...DEFAULT_NN_ACTOR_CONFIG,
       encoderConfig: DEFAULT_ENCODER_CONFIG,
@@ -73,14 +78,21 @@ export class NNActor implements IActor {
     }
 
     if (this.neuralNetwork.getInputSize() !== 64) {
-      throw new Error(`Neural network input size must be 64, got ${this.neuralNetwork.getInputSize()}`);
+      throw new Error(
+        `Neural network input size must be 64, got ${this.neuralNetwork.getInputSize()}`
+      );
     }
 
     if (this.neuralNetwork.getOutputSize() !== 4) {
-      throw new Error(`Neural network output size must be 4, got ${this.neuralNetwork.getOutputSize()}`);
+      throw new Error(
+        `Neural network output size must be 4, got ${this.neuralNetwork.getOutputSize()}`
+      );
     }
 
-    if (this.config.decisionThreshold < 0 || this.config.decisionThreshold > 1) {
+    if (
+      this.config.decisionThreshold < 0 ||
+      this.config.decisionThreshold > 1
+    ) {
       throw new Error('Decision threshold must be between 0 and 1');
     }
 
@@ -91,7 +103,7 @@ export class NNActor implements IActor {
 
   /**
    * Called when the game state changes. Makes movement decisions using the neural network.
-   * 
+   *
    * @param state Current game state
    * @returns Game input or null if no action needed
    */
@@ -116,13 +128,20 @@ export class NNActor implements IActor {
       this.stepCounter++;
 
       // Check minimum direction change interval
-      if (this.stepCounter - this.lastActionTime < this.config.minDirectionChangeInterval) {
+      if (
+        this.stepCounter - this.lastActionTime <
+        this.config.minDirectionChangeInterval
+      ) {
         return null; // Too soon to change direction
       }
 
       // Encode current game state
       const gameTime = Date.now() - this.gameStartTime;
-      const encodedState = this.stateEncoder.encode(state, this.config.snakeIndex, gameTime);
+      const encodedState = this.stateEncoder.encode(
+        state,
+        this.config.snakeIndex,
+        gameTime
+      );
 
       // Get neural network prediction
       const networkOutput = this.neuralNetwork.forward(encodedState);
@@ -138,7 +157,7 @@ export class NNActor implements IActor {
         }
 
         this.lastActionTime = this.stepCounter;
-        
+
         return {
           inputType: 'direction',
           dir: selectedDirection,
@@ -155,22 +174,40 @@ export class NNActor implements IActor {
 
   /**
    * Selects an action based on neural network output.
-   * 
+   *
    * @param networkOutput Raw output from neural network (4 values for UP, RIGHT, DOWN, LEFT)
    * @param currentDirection Current snake direction
    * @returns Selected direction or null if no change needed
    */
-  private selectAction(networkOutput: number[], currentDirection: EDirection): EDirection | null {
+  private selectAction(
+    networkOutput: number[],
+    currentDirection: EDirection
+  ): EDirection | null {
     if (networkOutput.length !== 4) {
-      throw new Error(`Expected 4 network outputs, got ${networkOutput.length}`);
+      throw new Error(
+        `Expected 4 network outputs, got ${networkOutput.length}`
+      );
     }
 
-    const directions = [EDirection.UP, EDirection.RIGHT, EDirection.DOWN, EDirection.LEFT];
-    
+    const directions = [
+      EDirection.UP,
+      EDirection.RIGHT,
+      EDirection.DOWN,
+      EDirection.LEFT,
+    ];
+
     if (this.config.useProbabilisticSelection) {
-      return this.selectActionProbabilistic(networkOutput, directions, currentDirection);
+      return this.selectActionProbabilistic(
+        networkOutput,
+        directions,
+        currentDirection
+      );
     } else {
-      return this.selectActionDeterministic(networkOutput, directions, currentDirection);
+      return this.selectActionDeterministic(
+        networkOutput,
+        directions,
+        currentDirection
+      );
     }
   }
 
@@ -178,8 +215,8 @@ export class NNActor implements IActor {
    * Selects action deterministically (highest probability).
    */
   private selectActionDeterministic(
-    networkOutput: number[], 
-    directions: EDirection[], 
+    networkOutput: number[],
+    directions: EDirection[],
     currentDirection: EDirection
   ): EDirection | null {
     // Find the action with highest probability
@@ -204,8 +241,9 @@ export class NNActor implements IActor {
     // Only change direction if the best action is significantly better than current
     if (bestDirection !== null && bestDirection !== currentDirection) {
       const currentDirectionIndex = directions.indexOf(currentDirection);
-      const currentProbability = currentDirectionIndex >= 0 ? networkOutput[currentDirectionIndex] : 0;
-      
+      const currentProbability =
+        currentDirectionIndex >= 0 ? networkOutput[currentDirectionIndex] : 0;
+
       if (maxValue - currentProbability > this.config.decisionThreshold) {
         return bestDirection;
       }
@@ -218,19 +256,25 @@ export class NNActor implements IActor {
    * Selects action probabilistically based on output probabilities.
    */
   private selectActionProbabilistic(
-    networkOutput: number[], 
-    directions: EDirection[], 
+    networkOutput: number[],
+    directions: EDirection[],
     currentDirection: EDirection
   ): EDirection | null {
     // Apply temperature scaling
-    const scaledOutput = networkOutput.map(value => value / this.config.selectionTemperature);
-    
+    const scaledOutput = networkOutput.map(
+      value => value / this.config.selectionTemperature
+    );
+
     // Filter out invalid directions (180-degree turns)
-    const validDirections: { direction: EDirection; probability: number; index: number }[] = [];
-    
+    const validDirections: {
+      direction: EDirection;
+      probability: number;
+      index: number;
+    }[] = [];
+
     for (let i = 0; i < scaledOutput.length; i++) {
       const direction = directions[i];
-      
+
       // Skip if this would be a 180-degree turn
       if (direction + currentDirection === 0) {
         continue;
@@ -248,7 +292,10 @@ export class NNActor implements IActor {
     }
 
     // Normalize probabilities
-    const totalProbability = validDirections.reduce((sum, item) => sum + item.probability, 0);
+    const totalProbability = validDirections.reduce(
+      (sum, item) => sum + item.probability,
+      0
+    );
     validDirections.forEach(item => {
       item.probability /= totalProbability;
     });
@@ -282,7 +329,7 @@ export class NNActor implements IActor {
    */
   public updateConfig(newConfig: Partial<NNActorConfig>): void {
     this.config = { ...this.config, ...newConfig };
-    
+
     if (newConfig.encoderConfig) {
       this.stateEncoder.updateConfig(newConfig.encoderConfig);
     }
@@ -307,7 +354,7 @@ export class NNActor implements IActor {
   } {
     const architecture = this.neuralNetwork.getArchitecture();
     const layerSizes = [architecture.layers[0].inputSize];
-    
+
     for (const layer of architecture.layers) {
       layerSizes.push(layer.outputSize);
     }
@@ -328,7 +375,7 @@ export class NNActor implements IActor {
 
   /**
    * Creates a Neural Network Actor from weight file data.
-   * 
+   *
    * @param snakeIndex Index of snake to control
    * @param weightData JSON string containing neural network weights
    * @param config Optional configuration overrides
@@ -344,7 +391,10 @@ export class NNActor implements IActor {
       const loadResult = weightLoader.loadFromJSON(weightData);
 
       if (!loadResult.isValid) {
-        console.error('Failed to load neural network weights:', loadResult.errors);
+        console.error(
+          'Failed to load neural network weights:',
+          loadResult.errors
+        );
         return null;
       }
 
@@ -367,7 +417,7 @@ export class NNActor implements IActor {
 
   /**
    * Creates a Neural Network Actor with random weights for testing.
-   * 
+   *
    * @param snakeIndex Index of snake to control
    * @param config Optional configuration overrides
    * @returns NNActor instance with random weights

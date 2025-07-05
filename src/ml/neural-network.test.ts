@@ -3,11 +3,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  NeuralNetwork, 
-  NetworkArchitecture, 
-  ActivationFunctions, 
-  softmax 
+import {
+  NeuralNetwork,
+  NetworkArchitecture,
+  ActivationFunctions,
+  softmax,
 } from './neural-network';
 
 describe('NeuralNetwork', () => {
@@ -21,7 +21,10 @@ describe('NeuralNetwork', () => {
         {
           inputSize: 2,
           outputSize: 2,
-          weights: [[0.5, 0.2], [0.3, 0.8]],
+          weights: [
+            [0.5, 0.2],
+            [0.3, 0.8],
+          ],
           biases: [0.1, -0.1],
         },
         {
@@ -85,7 +88,11 @@ describe('NeuralNetwork', () => {
           {
             inputSize: 2,
             outputSize: 3,
-            weights: [[1, 2], [3, 4], [5, 6]],
+            weights: [
+              [1, 2],
+              [3, 4],
+              [5, 6],
+            ],
             biases: [1, 2, 3],
           },
           {
@@ -125,7 +132,10 @@ describe('NeuralNetwork', () => {
           {
             inputSize: 2,
             outputSize: 2,
-            weights: [[1, 2], [3, 4]],
+            weights: [
+              [1, 2],
+              [3, 4],
+            ],
             biases: [1], // Should have 2 biases
           },
         ],
@@ -171,22 +181,30 @@ describe('NeuralNetwork', () => {
           {
             inputSize: 2,
             outputSize: 3,
-            weights: [[1, 2], [3, 4], [5, 6]],
+            weights: [
+              [1, 2],
+              [3, 4],
+              [5, 6],
+            ],
             biases: [0.1, 0.2, 0.3],
           },
         ],
       };
 
-      const network = new NeuralNetwork(outputArchitecture, ActivationFunctions.relu, 'softmax');
+      const network = new NeuralNetwork(
+        outputArchitecture,
+        ActivationFunctions.relu,
+        'softmax'
+      );
       const input = [1.0, 0.5];
       const output = network.forward(input);
 
       expect(output).toHaveLength(3);
-      
+
       // Check that output sums to approximately 1 (softmax property)
       const sum = output.reduce((a, b) => a + b, 0);
       expect(sum).toBeCloseTo(1.0, 5);
-      
+
       // Check that all values are positive (softmax property)
       output.forEach(value => {
         expect(value).toBeGreaterThan(0);
@@ -195,9 +213,18 @@ describe('NeuralNetwork', () => {
     });
 
     it('should use different activation functions', () => {
-      const network1 = new NeuralNetwork(simpleArchitecture, ActivationFunctions.relu);
-      const network2 = new NeuralNetwork(simpleArchitecture, ActivationFunctions.sigmoid);
-      const network3 = new NeuralNetwork(simpleArchitecture, ActivationFunctions.tanh);
+      const network1 = new NeuralNetwork(
+        simpleArchitecture,
+        ActivationFunctions.relu
+      );
+      const network2 = new NeuralNetwork(
+        simpleArchitecture,
+        ActivationFunctions.sigmoid
+      );
+      const network3 = new NeuralNetwork(
+        simpleArchitecture,
+        ActivationFunctions.tanh
+      );
 
       const input = [1.0, 0.5];
       const output1 = network1.forward(input);
@@ -217,7 +244,7 @@ describe('NeuralNetwork', () => {
     it('should produce identical outputs for identical inputs', () => {
       const network = new NeuralNetwork(simpleArchitecture);
       const input = [1.0, 0.5];
-      
+
       const output1 = network.forward(input);
       const output2 = network.forward(input);
 
@@ -228,7 +255,7 @@ describe('NeuralNetwork', () => {
       const network = new NeuralNetwork(simpleArchitecture);
       const input = [1.0, 0.5];
       const originalInput = [...input];
-      
+
       network.forward(input);
 
       expect(input).toEqual(originalInput);
@@ -265,12 +292,14 @@ describe('NeuralNetwork', () => {
       // Check that the architectures have different weights
       const arch1 = network1.getArchitecture();
       const arch2 = network2.getArchitecture();
-      
+
       let weightsAreDifferent = false;
       for (let i = 0; i < arch1.layers.length; i++) {
         for (let j = 0; j < arch1.layers[i].weights.length; j++) {
           for (let k = 0; k < arch1.layers[i].weights[j].length; k++) {
-            if (arch1.layers[i].weights[j][k] !== arch2.layers[i].weights[j][k]) {
+            if (
+              arch1.layers[i].weights[j][k] !== arch2.layers[i].weights[j][k]
+            ) {
               weightsAreDifferent = true;
               break;
             }
@@ -279,7 +308,7 @@ describe('NeuralNetwork', () => {
         }
         if (weightsAreDifferent) break;
       }
-      
+
       expect(weightsAreDifferent).toBe(true);
     });
 
@@ -301,7 +330,7 @@ describe('NeuralNetwork', () => {
       const network = NeuralNetwork.createRandom(layerSizes, weightRange, 123);
 
       const architecture = network.getArchitecture();
-      
+
       // Check that all weights are within the specified range
       architecture.layers.forEach(layer => {
         layer.weights.forEach(neuronWeights => {
@@ -309,7 +338,7 @@ describe('NeuralNetwork', () => {
             expect(Math.abs(weight)).toBeLessThanOrEqual(weightRange);
           });
         });
-        
+
         layer.biases.forEach(bias => {
           expect(Math.abs(bias)).toBeLessThanOrEqual(weightRange);
         });
@@ -372,10 +401,10 @@ describe('NeuralNetwork', () => {
     it('should be invariant to constant shifts', () => {
       const values = [1, 2, 3];
       const shiftedValues = [11, 12, 13];
-      
+
       const result1 = softmax(values);
       const result2 = softmax(shiftedValues);
-      
+
       result1.forEach((value, index) => {
         expect(value).toBeCloseTo(result2[index], 10);
       });

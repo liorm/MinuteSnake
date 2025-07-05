@@ -3,7 +3,12 @@
  * Normalizes all values to 0-1 range for optimal neural network performance.
  */
 
-import { IGameState, IGameStateSnake, AppleType, EDirection } from '../backend/game-logic';
+import {
+  IGameState,
+  IGameStateSnake,
+  AppleType,
+  EDirection,
+} from '../backend/game-logic';
 import { Vector } from '../backend/utils';
 
 /**
@@ -12,30 +17,30 @@ import { Vector } from '../backend/utils';
  */
 export interface NeuralNetworkInput {
   // Snake state (16 values)
-  snakeHeadX: number;           // normalized 0-1
-  snakeHeadY: number;           // normalized 0-1
-  snakeLength: number;          // normalized 0-1
-  snakeTargetLength: number;    // normalized 0-1
+  snakeHeadX: number; // normalized 0-1
+  snakeHeadY: number; // normalized 0-1
+  snakeLength: number; // normalized 0-1
+  snakeTargetLength: number; // normalized 0-1
   snakeBodyPositions: number[]; // up to 12 relative positions (6 pairs of x,y)
-  
+
   // Apple state (4 values)
-  appleX: number;               // normalized 0-1
-  appleY: number;               // normalized 0-1
-  appleType: number;            // 0=normal, 1=diet
-  appleDistance: number;        // normalized 0-1
-  
+  appleX: number; // normalized 0-1
+  appleY: number; // normalized 0-1
+  appleType: number; // 0=normal, 1=diet
+  appleDistance: number; // normalized 0-1
+
   // Environment state (32 values)
-  wallDistances: number[];      // 4 directions
-  collisionRisks: number[];     // 8 directions
-  safetyScores: number[];       // 8 directions
+  wallDistances: number[]; // 4 directions
+  collisionRisks: number[]; // 8 directions
+  safetyScores: number[]; // 8 directions
   otherSnakeDistances: number[]; // up to 12 values
-  
+
   // Game state (12 values)
-  gameSpeed: number;            // normalized 0-1
-  gameTime: number;             // normalized 0-1 (based on some max time)
-  score: number;                // normalized 0-1
-  currentDirection: number[];   // one-hot encoded direction (4 values)
-  reserved: number[];           // 5 reserved for future features
+  gameSpeed: number; // normalized 0-1
+  gameTime: number; // normalized 0-1 (based on some max time)
+  score: number; // normalized 0-1
+  currentDirection: number[]; // one-hot encoded direction (4 values)
+  reserved: number[]; // 5 reserved for future features
 }
 
 /**
@@ -87,13 +92,17 @@ export class StateEncoder {
 
   /**
    * Encodes the game state for a specific snake into neural network input format.
-   * 
+   *
    * @param gameState Current game state
    * @param snakeIndex Index of the snake we're encoding for
    * @param gameTime Current game time in milliseconds
    * @returns Flat array of 64 normalized values
    */
-  public encode(gameState: IGameState, snakeIndex: number, gameTime: number = 0): number[] {
+  public encode(
+    gameState: IGameState,
+    snakeIndex: number,
+    gameTime: number = 0
+  ): number[] {
     if (snakeIndex >= gameState.snakes.length) {
       throw new Error(`Snake index ${snakeIndex} out of bounds`);
     }
@@ -147,31 +156,42 @@ export class StateEncoder {
   private encodeSnakeBodyPositions(snake: IGameStateSnake): number[] {
     const positions: number[] = [];
     const maxSegments = this.config.maxBodySegments;
-    
+
     for (let i = 0; i < maxSegments; i++) {
       if (i < snake.tiles.length) {
         const segment = snake.tiles[i];
         const relativeX = segment.x - snake.position.x;
         const relativeY = segment.y - snake.position.y;
-        
+
         // Normalize relative positions to [-1, 1] range
         positions.push(
-          this.normalize(relativeX, -this.config.maxFieldWidth, this.config.maxFieldWidth),
-          this.normalize(relativeY, -this.config.maxFieldHeight, this.config.maxFieldHeight)
+          this.normalize(
+            relativeX,
+            -this.config.maxFieldWidth,
+            this.config.maxFieldWidth
+          ),
+          this.normalize(
+            relativeY,
+            -this.config.maxFieldHeight,
+            this.config.maxFieldHeight
+          )
         );
       } else {
         // Pad with zeros for missing segments
         positions.push(0, 0);
       }
     }
-    
+
     return positions;
   }
 
   /**
    * Encodes apple state and distance information.
    */
-  private encodeAppleState(gameState: IGameState, snake: IGameStateSnake): number[] {
+  private encodeAppleState(
+    gameState: IGameState,
+    snake: IGameStateSnake
+  ): number[] {
     if (!gameState.apple) {
       return [0, 0, 0, 0]; // No apple present
     }
@@ -193,31 +213,40 @@ export class StateEncoder {
   /**
    * Encodes distances to walls in 4 cardinal directions.
    */
-  private encodeWallDistances(snake: IGameStateSnake, _gameState: IGameState): number[] {
+  private encodeWallDistances(
+    snake: IGameStateSnake,
+    _gameState: IGameState
+  ): number[] {
     const head = snake.position;
-    const maxDistance = Math.max(this.config.maxFieldWidth, this.config.maxFieldHeight);
+    const maxDistance = Math.max(
+      this.config.maxFieldWidth,
+      this.config.maxFieldHeight
+    );
 
     return [
-      this.normalize(head.y, 0, maxDistance),                    // Distance to top wall
+      this.normalize(head.y, 0, maxDistance), // Distance to top wall
       this.normalize(this.config.maxFieldHeight - head.y, 0, maxDistance), // Distance to bottom wall
-      this.normalize(head.x, 0, maxDistance),                    // Distance to left wall
-      this.normalize(this.config.maxFieldWidth - head.x, 0, maxDistance),  // Distance to right wall
+      this.normalize(head.x, 0, maxDistance), // Distance to left wall
+      this.normalize(this.config.maxFieldWidth - head.x, 0, maxDistance), // Distance to right wall
     ];
   }
 
   /**
    * Encodes collision risks in 8 directions around the snake head.
    */
-  private encodeCollisionRisks(snake: IGameStateSnake, gameState: IGameState): number[] {
+  private encodeCollisionRisks(
+    snake: IGameStateSnake,
+    gameState: IGameState
+  ): number[] {
     const head = snake.position;
     const directions = [
-      { x: 0, y: -1 },  // North
-      { x: 1, y: -1 },  // Northeast
-      { x: 1, y: 0 },   // East
-      { x: 1, y: 1 },   // Southeast
-      { x: 0, y: 1 },   // South
-      { x: -1, y: 1 },  // Southwest
-      { x: -1, y: 0 },  // West
+      { x: 0, y: -1 }, // North
+      { x: 1, y: -1 }, // Northeast
+      { x: 1, y: 0 }, // East
+      { x: 1, y: 1 }, // Southeast
+      { x: 0, y: 1 }, // South
+      { x: -1, y: 1 }, // Southwest
+      { x: -1, y: 0 }, // West
       { x: -1, y: -1 }, // Northwest
     ];
 
@@ -230,22 +259,26 @@ export class StateEncoder {
   /**
    * Encodes safety scores in 8 directions (inverse of collision risk with distance weighting).
    */
-  private encodeSafetyScores(snake: IGameStateSnake, gameState: IGameState): number[] {
+  private encodeSafetyScores(
+    snake: IGameStateSnake,
+    gameState: IGameState
+  ): number[] {
     const head = snake.position;
     const directions = [
-      { x: 0, y: -1 },  // North
-      { x: 1, y: -1 },  // Northeast
-      { x: 1, y: 0 },   // East
-      { x: 1, y: 1 },   // Southeast
-      { x: 0, y: 1 },   // South
-      { x: -1, y: 1 },  // Southwest
-      { x: -1, y: 0 },  // West
+      { x: 0, y: -1 }, // North
+      { x: 1, y: -1 }, // Northeast
+      { x: 1, y: 0 }, // East
+      { x: 1, y: 1 }, // Southeast
+      { x: 0, y: 1 }, // South
+      { x: -1, y: 1 }, // Southwest
+      { x: -1, y: 0 }, // West
       { x: -1, y: -1 }, // Northwest
     ];
 
     return directions.map(dir => {
       let safeDistance = 0;
-      for (let i = 1; i <= 5; i++) { // Check up to 5 tiles ahead
+      for (let i = 1; i <= 5; i++) {
+        // Check up to 5 tiles ahead
         const checkPos = { x: head.x + dir.x * i, y: head.y + dir.y * i };
         if (this.isPositionDangerous(checkPos, gameState, snake)) {
           break;
@@ -260,33 +293,42 @@ export class StateEncoder {
    * Encodes distances to other snakes' heads and key body segments.
    */
   private encodeOtherSnakeDistances(
-    snake: IGameStateSnake, 
-    _gameState: IGameState, 
+    snake: IGameStateSnake,
+    _gameState: IGameState,
     currentSnakeIndex: number
   ): number[] {
     const distances: number[] = [];
     const maxDistance = Math.sqrt(
       this.config.maxFieldWidth ** 2 + this.config.maxFieldHeight ** 2
     );
-    
+
     let distanceCount = 0;
     const maxDistances = 12;
 
     // Get distances to other snakes
-    for (let i = 0; i < _gameState.snakes.length && distanceCount < maxDistances; i++) {
+    for (
+      let i = 0;
+      i < _gameState.snakes.length && distanceCount < maxDistances;
+      i++
+    ) {
       if (i === currentSnakeIndex) continue;
-      
+
       const otherSnake = _gameState.snakes[i];
-      
+
       // Distance to other snake's head
-      const headDistance = this.calculateDistance(snake.position, otherSnake.position);
+      const headDistance = this.calculateDistance(
+        snake.position,
+        otherSnake.position
+      );
       distances.push(this.normalize(headDistance, 0, maxDistance));
       distanceCount++;
-      
+
       // Distance to closest body segment of other snake
       if (distanceCount < maxDistances && otherSnake.tiles.length > 0) {
         const minBodyDistance = Math.min(
-          ...otherSnake.tiles.map(tile => this.calculateDistance(snake.position, tile))
+          ...otherSnake.tiles.map(tile =>
+            this.calculateDistance(snake.position, tile)
+          )
         );
         distances.push(this.normalize(minBodyDistance, 0, maxDistance));
         distanceCount++;
@@ -305,8 +347,8 @@ export class StateEncoder {
    * Encodes general game state information.
    */
   private encodeGameState(
-    gameState: IGameState, 
-    snake: IGameStateSnake, 
+    gameState: IGameState,
+    snake: IGameStateSnake,
     gameTime: number
   ): number[] {
     // One-hot encode current direction
@@ -341,22 +383,26 @@ export class StateEncoder {
    * Checks if a position is dangerous (collision with wall, block, or snake).
    */
   private isPositionDangerous(
-    position: Vector, 
-    gameState: IGameState, 
+    position: Vector,
+    gameState: IGameState,
     _currentSnake: IGameStateSnake
   ): boolean {
     // Check walls
     if (
-      position.x < 0 || 
+      position.x < 0 ||
       position.x >= this.config.maxFieldWidth ||
-      position.y < 0 || 
+      position.y < 0 ||
       position.y >= this.config.maxFieldHeight
     ) {
       return true;
     }
 
     // Check blocks
-    if (gameState.blocks.some(block => block.x === position.x && block.y === position.y)) {
+    if (
+      gameState.blocks.some(
+        block => block.x === position.x && block.y === position.y
+      )
+    ) {
       return true;
     }
 
@@ -365,7 +411,9 @@ export class StateEncoder {
       if (snake.position.x === position.x && snake.position.y === position.y) {
         return true;
       }
-      if (snake.tiles.some(tile => tile.x === position.x && tile.y === position.y)) {
+      if (
+        snake.tiles.some(tile => tile.x === position.x && tile.y === position.y)
+      ) {
         return true;
       }
     }
