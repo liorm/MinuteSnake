@@ -12,7 +12,7 @@ describe('GameLogic - Apple Interactions', () => {
     snakes: [{ position: new Vector(5, 5), direction: EDirection.RIGHT }],
   };
 
-  it('should increase snake target length by 2 when eating normal apple', () => {
+  it('should increase snake target length by 3 when eating normal apple', () => {
     const game = new GameLogic(_defaultStage);
     const snake = game.state.snakes[0];
     const initialTargetLength = snake.targetLength;
@@ -22,7 +22,7 @@ describe('GameLogic - Apple Interactions', () => {
 
     game.advanceTime(100);
 
-    expect(snake.targetLength).toBe(initialTargetLength + 2);
+    expect(snake.targetLength).toBe(initialTargetLength + 3);
     expect(snake.length).toBe(initialTargetLength + 1); // Should grow by 1 per step
     expect(snake.tiles.length).toBeLessThanOrEqual(snake.length);
   });
@@ -124,7 +124,7 @@ describe('GameLogic - Apple Interactions', () => {
     expect(game1.state.apple).toEqual(game2.state.apple);
   });
 
-  it('should reduce snake target length to 90% when eating diet apple', () => {
+  it('should reduce snake target length to 50% when eating diet apple', () => {
     const game = new GameLogic(_defaultStage);
     const snake = game.state.snakes[0];
     snake.length = 20; // Start with longer snake
@@ -136,8 +136,8 @@ describe('GameLogic - Apple Interactions', () => {
 
     game.advanceTime(100);
 
-    // Should update target length to 90%
-    const expectedTargetLength = Math.floor(initialTargetLength * 0.9);
+    // Should update target length to 50%
+    const expectedTargetLength = Math.floor(initialTargetLength * 0.5);
     expect(snake.targetLength).toBe(expectedTargetLength);
     expect(snake.length).toBe(19); // Should start shrinking by 1 per step
   });
@@ -147,7 +147,7 @@ describe('GameLogic - Apple Interactions', () => {
     const snake = game.state.snakes[0];
     snake.length = 20; // Start with longer snake
     snake.targetLength = 20;
-    const expectedFinalLength = Math.floor(20 * 0.9); // 18
+    const expectedFinalLength = Math.floor(20 * 0.5); // 10
 
     game.state.apple = { position: new Vector(6, 5), type: AppleType.DIET };
     game.state.speed = 10;
@@ -157,13 +157,15 @@ describe('GameLogic - Apple Interactions', () => {
     expect(snake.targetLength).toBe(expectedFinalLength);
     expect(snake.length).toBe(19); // First shrink step
 
-    // Continue until target is reached
-    game.advanceTime(100);
-    expect(snake.length).toBe(18); // Should reach target
+    // Continue until target is reached (need multiple steps)
+    for (let i = 0; i < 9; i++) {
+      game.advanceTime(100);
+    }
+    expect(snake.length).toBe(10); // Should reach target
 
     // Verify no further changes
     game.advanceTime(100);
-    expect(snake.length).toBe(18); // Should stay at target
+    expect(snake.length).toBe(10); // Should stay at target
   });
 
   it('should stack diet effects by further reducing target length', () => {
@@ -177,15 +179,15 @@ describe('GameLogic - Apple Interactions', () => {
     game.state.speed = 10;
     game.advanceTime(100);
 
-    const firstTargetLength = snake.targetLength; // Should be 18 (90% of 20)
-    expect(firstTargetLength).toBe(18);
+    const firstTargetLength = snake.targetLength; // Should be 10 (50% of 20)
+    expect(firstTargetLength).toBe(10);
 
     // Apply second diet effect
     game.state.apple = { position: new Vector(7, 5), type: AppleType.DIET };
     game.advanceTime(100);
 
-    // Should reduce further (90% of current target)
-    const secondTargetLength = Math.floor(firstTargetLength * 0.9); // 16
+    // Should reduce further (50% of current target)
+    const secondTargetLength = Math.floor(firstTargetLength * 0.5); // 5
     expect(snake.targetLength).toBe(secondTargetLength);
   });
 

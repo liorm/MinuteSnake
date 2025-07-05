@@ -9,7 +9,7 @@ import { IActor } from './actor';
 export class AIActor implements IActor {
   constructor(
     private snakeIdx: number,
-    private readonly safetyRadius: number = 3
+    private readonly safetyRadius: number = 4
   ) {}
 
   private isNearOtherSnake(

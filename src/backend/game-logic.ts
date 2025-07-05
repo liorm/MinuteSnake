@@ -341,10 +341,10 @@ export class GameLogic {
   ): void {
     switch (appleType) {
       case AppleType.NORMAL:
-        snake.targetLength += 2;
+        snake.targetLength += 3;
         break;
       case AppleType.DIET:
-        snake.targetLength = Math.max(1, Math.floor(snake.targetLength * 0.9));
+        snake.targetLength = Math.max(1, Math.floor(snake.targetLength * 0.5));
         break;
       default:
         assertNever(appleType);
