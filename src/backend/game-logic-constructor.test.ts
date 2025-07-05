@@ -25,6 +25,7 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.snakes[0].position).toEqual(new Vector(4, 4));
     expect(game.state.snakes[0].dir).toBe(EDirection.RIGHT);
     expect(game.state.snakes[0].length).toBe(4);
+    expect(game.state.snakes[0].targetLength).toBe(4);
     expect(game.state.snakes[0].tiles).toEqual([]);
     expect(game.state.snakes[0].pendingDirs).toEqual([]);
     expect(game.state.snakes[0].score).toBe(0);
@@ -115,6 +116,7 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.snakes[0].position).toEqual(new Vector(2, 2));
     expect(game.state.snakes[0].dir).toBe(EDirection.RIGHT);
     expect(game.state.snakes[0].length).toBe(4);
+    expect(game.state.snakes[0].targetLength).toBe(4);
     expect(game.state.snakes[0].tiles).toEqual([]);
     expect(game.state.snakes[0].pendingDirs).toEqual([]);
     expect(game.state.snakes[0].score).toBe(0);
@@ -122,6 +124,7 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.snakes[1].position).toEqual(new Vector(7, 5));
     expect(game.state.snakes[1].dir).toBe(EDirection.LEFT);
     expect(game.state.snakes[1].length).toBe(4);
+    expect(game.state.snakes[1].targetLength).toBe(4);
     expect(game.state.snakes[1].tiles).toEqual([]);
     expect(game.state.snakes[1].pendingDirs).toEqual([]);
     expect(game.state.snakes[1].score).toBe(0);

@@ -21,6 +21,7 @@ describe('GameLogic - Private Methods', () => {
       game.state.speed = 20;
       game.state.apple = { position: new Vector(3, 3), type: AppleType.NORMAL };
       game.state.snakes[0].length = 8;
+      game.state.snakes[0].targetLength = 10;
       game.state.snakes[0].tiles = [new Vector(4, 4), new Vector(3, 4)];
       game.state.snakes[0].score = 5; // Set a score to test reset
       game.advanceTime(1000); // This will modify totalDuration
@@ -34,6 +35,7 @@ describe('GameLogic - Private Methods', () => {
       expect(game.state.speed).toBe(12); // Default speed
       expect(game.state.apple).toBeNull();
       expect(game.state.snakes[0].length).toBe(4); // Default length
+      expect(game.state.snakes[0].targetLength).toBe(4); // Default target length
       expect(game.state.snakes[0].tiles).toEqual([]);
       expect(game.state.snakes[0].score).toBe(0); // Score should reset to 0
       expect(game.totalDuration).toBe(0);

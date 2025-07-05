@@ -12,17 +12,18 @@ describe('GameLogic - Apple Interactions', () => {
     snakes: [{ position: new Vector(5, 5), direction: EDirection.RIGHT }],
   };
 
-  it('should increase snake length when eating normal apple', () => {
+  it('should increase snake target length by 1 when eating normal apple', () => {
     const game = new GameLogic(_defaultStage);
     const snake = game.state.snakes[0];
-    const initialLength = snake.length;
+    const initialTargetLength = snake.targetLength;
 
     game.state.apple = { position: new Vector(6, 5), type: AppleType.NORMAL };
     game.state.speed = 10;
 
     game.advanceTime(100);
 
-    expect(snake.length).toBe(initialLength + 2);
+    expect(snake.targetLength).toBe(initialTargetLength + 1);
+    expect(snake.length).toBe(initialTargetLength + 1); // Should reach target after one step
     expect(snake.tiles.length).toBeLessThanOrEqual(snake.length);
   });
 
@@ -123,66 +124,91 @@ describe('GameLogic - Apple Interactions', () => {
     expect(game1.state.apple).toEqual(game2.state.apple);
   });
 
-  it('should reduce snake length gradually when eating diet apple', () => {
+  it('should reduce snake target length to 90% when eating diet apple', () => {
     const game = new GameLogic(_defaultStage);
     const snake = game.state.snakes[0];
     snake.length = 20; // Start with longer snake
-    const initialLength = snake.length;
+    snake.targetLength = 20;
+    const initialTargetLength = snake.targetLength;
 
     game.state.apple = { position: new Vector(6, 5), type: AppleType.DIET };
     game.state.speed = 10;
 
     game.advanceTime(100);
 
-    // Should start diet effect
-    expect(snake.dietEffect).toBeDefined();
-    expect(snake.dietEffect!.originalLength).toBe(initialLength);
-    expect(snake.dietEffect!.targetLength).toBe(
-      Math.floor(initialLength * 0.9)
-    );
-    expect(snake.dietEffect!.stepsRemaining).toBe(4); // Started with 5, reduced by 1
+    // Should update target length to 90%
+    const expectedTargetLength = Math.floor(initialTargetLength * 0.9);
+    expect(snake.targetLength).toBe(expectedTargetLength);
+    expect(snake.length).toBe(19); // Should start shrinking by 1 per step
   });
 
-  it('should complete diet effect over 5 steps', () => {
+  it('should gradually shrink snake to target length', () => {
     const game = new GameLogic(_defaultStage);
     const snake = game.state.snakes[0];
     snake.length = 20; // Start with longer snake
-    const initialLength = snake.length;
-    const expectedFinalLength = Math.floor(initialLength * 0.9);
+    snake.targetLength = 20;
+    const expectedFinalLength = Math.floor(20 * 0.9); // 18
 
     game.state.apple = { position: new Vector(6, 5), type: AppleType.DIET };
     game.state.speed = 10;
 
     // Eat the diet apple
     game.advanceTime(100);
+    expect(snake.targetLength).toBe(expectedFinalLength);
+    expect(snake.length).toBe(19); // First shrink step
 
-    // Skip ahead to process all diet effect steps
-    for (let i = 0; i < 4; i++) {
-      game.advanceTime(100);
-    }
+    // Continue until target is reached
+    game.advanceTime(100);
+    expect(snake.length).toBe(18); // Should reach target
 
-    expect(snake.dietEffect).toBeUndefined();
-    expect(snake.length).toBe(expectedFinalLength);
+    // Verify no further changes
+    game.advanceTime(100);
+    expect(snake.length).toBe(18); // Should stay at target
   });
 
-  it('should not apply diet effect if one is already active', () => {
+  it('should stack diet effects by further reducing target length', () => {
     const game = new GameLogic(_defaultStage);
     const snake = game.state.snakes[0];
     snake.length = 20;
+    snake.targetLength = 20;
 
     // Apply first diet effect
     game.state.apple = { position: new Vector(6, 5), type: AppleType.DIET };
     game.state.speed = 10;
     game.advanceTime(100);
 
-    const firstEffect = snake.dietEffect!;
+    const firstTargetLength = snake.targetLength; // Should be 18 (90% of 20)
+    expect(firstTargetLength).toBe(18);
 
-    // Try to apply second diet effect
+    // Apply second diet effect
     game.state.apple = { position: new Vector(7, 5), type: AppleType.DIET };
     game.advanceTime(100);
 
-    // Should still have the same effect
-    expect(snake.dietEffect).toBe(firstEffect);
+    // Should reduce further (90% of current target)
+    const secondTargetLength = Math.floor(firstTargetLength * 0.9); // 16
+    expect(snake.targetLength).toBe(secondTargetLength);
+  });
+
+  it('should test gradual length adjustment for growing snake', () => {
+    const game = new GameLogic(_defaultStage);
+    const snake = game.state.snakes[0];
+
+    // Manually set target length higher
+    snake.targetLength = 7;
+    expect(snake.length).toBe(4); // Starting length
+
+    // Advance time to trigger length adjustment
+    game.advanceTime(100);
+    expect(snake.length).toBe(5); // Should grow by 1
+
+    game.advanceTime(100);
+    expect(snake.length).toBe(6); // Should grow by 1 more
+
+    game.advanceTime(100);
+    expect(snake.length).toBe(7); // Should reach target
+
+    game.advanceTime(100);
+    expect(snake.length).toBe(7); // Should stay at target
   });
 
   it('should generate both normal and diet apples randomly', () => {

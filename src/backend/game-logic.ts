@@ -45,17 +45,6 @@ export interface IApple {
 }
 
 /**
- * Represents an active diet effect on a snake.
- * Tracks the gradual length reduction over multiple steps.
- */
-export interface IDietEffect {
-  originalLength: number;
-  targetLength: number;
-  stepsRemaining: number;
-  reductionPerStep: number;
-}
-
-/**
  * Basic game configuration options defining the playing field size
  * and random number generation seed for deterministic gameplay.
  */
@@ -83,17 +72,17 @@ export interface IGameStage extends IGameOptions {
 
 /**
  * Represents the current state of a snake in the game.
- * Tracks position, length, occupied tiles, current direction,
- * queued direction changes, score, and active diet effects.
+ * Tracks position, current and target length, occupied tiles, current direction,
+ * queued direction changes, and score.
  */
 export interface IGameStateSnake {
   position: Vector;
   length: number;
+  targetLength: number;
   tiles: Vector[];
   dir: EDirection;
   pendingDirs: EDirection[];
   score: number;
-  dietEffect?: IDietEffect;
 }
 
 /**
@@ -189,6 +178,7 @@ export class GameLogic {
       snakes: this._stage.snakes.map(snake => ({
         position: snake.position,
         length: 4,
+        targetLength: 4,
         tiles: [],
         dir: snake.direction,
         pendingDirs: [],
@@ -285,6 +275,9 @@ export class GameLogic {
         snake.score += 1;
       }
 
+      // Gradually adjust length towards target
+      this._adjustSnakeLength(snake);
+
       while (snake.tiles.length > snake.length) {
         snake.tiles.splice(0, 1);
       }
@@ -301,11 +294,6 @@ export class GameLogic {
 
       snake.position = newPosition;
       snake.tiles.push(newPosition);
-    }
-
-    // Process diet effects
-    for (const snake of state.snakes) {
-      this._processDietEffect(snake);
     }
 
     if (!state.apple) {
@@ -353,51 +341,27 @@ export class GameLogic {
   ): void {
     switch (appleType) {
       case AppleType.NORMAL:
-        snake.length += 2;
+        snake.targetLength += 1;
         break;
       case AppleType.DIET:
-        this._applyDietEffect(snake);
+        snake.targetLength = Math.max(1, Math.floor(snake.targetLength * 0.9));
         break;
       default:
         assertNever(appleType);
     }
   }
 
-  private _applyDietEffect(snake: IGameStateSnake): void {
-    if (snake.dietEffect) {
+  private _adjustSnakeLength(snake: IGameStateSnake): void {
+    if (snake.length === snake.targetLength) {
       return;
     }
 
-    const originalLength = snake.length;
-    const targetLength = Math.max(1, Math.floor(originalLength * 0.9));
-    const totalReduction = originalLength - targetLength;
-    const reductionPerStep = Math.ceil(totalReduction / 5);
-
-    snake.dietEffect = {
-      originalLength,
-      targetLength,
-      stepsRemaining: 5,
-      reductionPerStep,
-    };
-  }
-
-  private _processDietEffect(snake: IGameStateSnake): void {
-    if (!snake.dietEffect) {
-      return;
-    }
-
-    const effect = snake.dietEffect;
-    effect.stepsRemaining--;
-
-    if (effect.stepsRemaining <= 0) {
-      snake.length = effect.targetLength;
-      snake.dietEffect = undefined;
+    if (snake.length < snake.targetLength) {
+      // Growing: increase by 1 each step
+      snake.length = Math.min(snake.targetLength, snake.length + 1);
     } else {
-      const newLength = Math.max(
-        effect.targetLength,
-        snake.length - effect.reductionPerStep
-      );
-      snake.length = newLength;
+      // Shrinking: decrease by 1 each step
+      snake.length = Math.max(snake.targetLength, snake.length - 1);
     }
   }
 

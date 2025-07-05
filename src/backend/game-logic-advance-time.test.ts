@@ -197,6 +197,7 @@ describe('GameLogic - Advance Time', () => {
       game.state.speed = 10;
       const snake = game.state.snakes[0];
       snake.length = 8;
+      snake.targetLength = 8;
 
       for (let i = 0; i < 3; i++) {
         game.advanceTime(100);
@@ -305,17 +306,18 @@ describe('GameLogic - Advance Time', () => {
       snakes: [{ position: new Vector(5, 5), direction: EDirection.RIGHT }],
     };
 
-    it('should increase snake length when eating apple', () => {
+    it('should increase snake target length by 1 when eating apple', () => {
       const game = new GameLogic(_defaultStage);
       const snake = game.state.snakes[0];
-      const initialLength = snake.length;
+      const initialTargetLength = snake.targetLength;
 
       game.state.apple = { position: new Vector(6, 5), type: AppleType.NORMAL };
       game.state.speed = 10;
 
       game.advanceTime(100);
 
-      expect(snake.length).toBe(initialLength + 2);
+      expect(snake.targetLength).toBe(initialTargetLength + 1);
+      expect(snake.length).toBe(initialTargetLength + 1);
       expect(snake.tiles.length).toBeLessThanOrEqual(snake.length);
     });
 
