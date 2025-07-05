@@ -12,7 +12,7 @@
     "serve": "npm run build -- --watch --serve=8080 --servedir=.",
     "format": "prettier --write \"**/*.{ts,js,json,html,css}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,html,css}\"",
-    "lint": "eslint \"src/**/*.ts\"",
+    "lint": "eslint \"src/**/*.ts\" --max-warnings 50",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "test": "vitest run",
     "test:watch": "vitest",
