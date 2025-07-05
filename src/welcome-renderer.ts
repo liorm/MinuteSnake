@@ -4,6 +4,7 @@
 export interface PlayerConfiguration {
   humanPlayers: number;
   aiPlayers: number;
+  nnPlayers: number;
 }
 
 /**
@@ -12,7 +13,8 @@ export interface PlayerConfiguration {
 export enum WelcomeMenuItem {
   HUMAN_PLAYERS = 0,
   AI_PLAYERS = 1,
-  START = 2,
+  NN_PLAYERS = 2,
+  START = 3,
 }
 
 /**
@@ -33,7 +35,8 @@ export class WelcomeRenderer {
   private _canvasHeight: number = 0;
   private _playerConfig: PlayerConfiguration = {
     humanPlayers: 1,
-    aiPlayers: 2,
+    aiPlayers: 1,
+    nnPlayers: 1,
   };
   private _selectedMenuItem: WelcomeMenuItem = WelcomeMenuItem.HUMAN_PLAYERS;
 
@@ -107,12 +110,22 @@ export class WelcomeRenderer {
         0,
         Math.min(6, this._playerConfig.aiPlayers + delta)
       );
+    } else if (this._selectedMenuItem === WelcomeMenuItem.NN_PLAYERS) {
+      this._playerConfig.nnPlayers = Math.max(
+        0,
+        Math.min(4, this._playerConfig.nnPlayers + delta)
+      );
     }
   }
 
   private _startGame(callbacks: WelcomeScreenCallbacks): void {
     // Validate that at least one player is selected
-    if (this._playerConfig.humanPlayers + this._playerConfig.aiPlayers === 0) {
+    if (
+      this._playerConfig.humanPlayers +
+        this._playerConfig.aiPlayers +
+        this._playerConfig.nnPlayers ===
+      0
+    ) {
       return; // Don't start game if no players selected
     }
 
@@ -170,6 +183,10 @@ export class WelcomeRenderer {
         text: `AI players: ${this._playerConfig.aiPlayers}`,
         menuItem: WelcomeMenuItem.AI_PLAYERS,
       },
+      {
+        text: `NN players: ${this._playerConfig.nnPlayers}`,
+        menuItem: WelcomeMenuItem.NN_PLAYERS,
+      },
       { text: 'Start', menuItem: WelcomeMenuItem.START },
     ];
 
@@ -196,7 +213,8 @@ export class WelcomeRenderer {
       // Draw arrows for player count items
       if (
         item.menuItem === WelcomeMenuItem.HUMAN_PLAYERS ||
-        item.menuItem === WelcomeMenuItem.AI_PLAYERS
+        item.menuItem === WelcomeMenuItem.AI_PLAYERS ||
+        item.menuItem === WelcomeMenuItem.NN_PLAYERS
       ) {
         ctx.fillStyle = isSelected ? '#ffffff' : '#95a5a6';
 
@@ -221,6 +239,7 @@ export class WelcomeRenderer {
     const instructions = [
       '↑↓ Navigate menu • ◀▶ Adjust players • ENTER Start game',
       '',
+      'NN players: Neural Network AI (experimental)',
       'Game Controls: Arrow keys (Player 1) • WASD (Player 2)',
       'P: Playback • N: New game • ESC: Menu • +/-: Speed',
     ];
@@ -232,7 +251,9 @@ export class WelcomeRenderer {
 
     // Draw total players validation
     const totalPlayers =
-      this._playerConfig.humanPlayers + this._playerConfig.aiPlayers;
+      this._playerConfig.humanPlayers +
+      this._playerConfig.aiPlayers +
+      this._playerConfig.nnPlayers;
     if (totalPlayers === 0) {
       ctx.font = `Bold ${menuFontSize * 0.8}px Arial`;
       ctx.fillStyle = '#e74c3c';

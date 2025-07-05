@@ -1,5 +1,5 @@
 import { EDirection, GameInput, IGameStage } from './backend/game-logic';
-import { IActor, HumanActor, AIActor } from './actors/index';
+import { IActor, HumanActor, AIActor, NNActor } from './actors/index';
 import { GameRenderer } from './game-renderer';
 import { GameState } from './game-state';
 import {
@@ -348,6 +348,12 @@ export class GameEngine {
     // Add AI players
     for (let i = 0; i < playerConfig.aiPlayers; i++) {
       this._actors.push(new AIActor(snakeIndex));
+      snakeIndex++;
+    }
+
+    // Add NN players
+    for (let i = 0; i < playerConfig.nnPlayers; i++) {
+      this._actors.push(NNActor.createRandom(snakeIndex));
       snakeIndex++;
     }
 

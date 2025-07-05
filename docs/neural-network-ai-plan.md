@@ -9,21 +9,22 @@ Implement a neural network-based AI agent for MinuteSnake with a training system
 **Subagent Task**: Create core NN infrastructure and NNActor implementation
 
 #### Tasks:
-- [ ] Create neural network implementation with forward propagation (`src/ml/neural-network.ts`)
-- [ ] Implement state encoder to convert game state to NN input (`src/ml/state-encoder.ts`)
-- [ ] Create NNActor class implementing IActor interface (`src/actors/nn-actor.ts`)
-- [ ] Add weight loading system from JSON files (`src/ml/weight-loader.ts`)
-- [ ] Create weights directory structure with default weights (`src/weights/`)
-- [ ] Write comprehensive tests for NN components
-- [ ] Update actors index to export NNActor
+- [x] Create neural network implementation with forward propagation (`src/ml/neural-network.ts`)
+- [x] Implement state encoder to convert game state to NN input (`src/ml/state-encoder.ts`)
+- [x] Create NNActor class implementing IActor interface (`src/actors/nn-actor.ts`)
+- [x] Add weight loading system from JSON files (`src/ml/weight-loader.ts`)
+- [x] Create weights directory structure with default weights (`src/weights/`)
+- [x] Write comprehensive tests for NN components
+- [x] Update actors index to export NNActor
 
-**Commit**: `feat: implement neural network actor with weight loading system`
+**Status**: ✅ **COMPLETED** - Commits: `7d92c76`, `f38343c`
 
 #### Technical Details:
-- **Network Architecture**: Input layer (~64 neurons) → Hidden layers (128, 64) → Output (4 directions)
+- **Network Architecture**: Input layer (64 neurons) → Hidden layers (128, 64) → Output (4 directions)
 - **State Encoding**: Snake positions, apple location, distances, collision risks
 - **Weight Format**: JSON with layers, weights, biases, and metadata
 - **Integration**: Implements existing `IActor` interface for seamless integration
+- **Testing**: Added NN Players option to welcome screen for easy testing with random weights
 
 ### Phase 2: Training System Infrastructure
 **Subagent Task**: Build genetic algorithm training system
