@@ -27,6 +27,7 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.snakes[0].length).toBe(4);
     expect(game.state.snakes[0].tiles).toEqual([]);
     expect(game.state.snakes[0].pendingDirs).toEqual([]);
+    expect(game.state.snakes[0].score).toBe(0);
   });
 
   it('should set up the PRNG with the correct seed', () => {
@@ -116,11 +117,13 @@ describe('GameLogic - Constructor', () => {
     expect(game.state.snakes[0].length).toBe(4);
     expect(game.state.snakes[0].tiles).toEqual([]);
     expect(game.state.snakes[0].pendingDirs).toEqual([]);
+    expect(game.state.snakes[0].score).toBe(0);
 
     expect(game.state.snakes[1].position).toEqual(new Vector(7, 5));
     expect(game.state.snakes[1].dir).toBe(EDirection.LEFT);
     expect(game.state.snakes[1].length).toBe(4);
     expect(game.state.snakes[1].tiles).toEqual([]);
     expect(game.state.snakes[1].pendingDirs).toEqual([]);
+    expect(game.state.snakes[1].score).toBe(0);
   });
 });

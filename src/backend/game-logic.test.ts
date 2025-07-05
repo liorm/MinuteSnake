@@ -22,6 +22,7 @@ describe('GameLogic - Private Methods', () => {
       game.state.applePos = new Vector(3, 3);
       game.state.snakes[0].length = 8;
       game.state.snakes[0].tiles = [new Vector(4, 4), new Vector(3, 4)];
+      game.state.snakes[0].score = 5; // Set a score to test reset
       game.advanceTime(1000); // This will modify totalDuration
 
       // Get private method access
@@ -34,6 +35,7 @@ describe('GameLogic - Private Methods', () => {
       expect(game.state.applePos).toBeNull();
       expect(game.state.snakes[0].length).toBe(4); // Default length
       expect(game.state.snakes[0].tiles).toEqual([]);
+      expect(game.state.snakes[0].score).toBe(0); // Score should reset to 0
       expect(game.totalDuration).toBe(0);
 
       // Test PRNG reset by generating apples

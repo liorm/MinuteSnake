@@ -26,6 +26,40 @@ describe('GameLogic - Apple Interactions', () => {
     expect(snake.tiles.length).toBeLessThanOrEqual(snake.length);
   });
 
+  it('should increase snake score when eating apple', () => {
+    const game = new GameLogic(_defaultStage);
+    const snake = game.state.snakes[0];
+    const initialScore = snake.score;
+
+    game.state.applePos = new Vector(6, 5);
+    game.state.speed = 10;
+
+    game.advanceTime(100);
+
+    expect(snake.score).toBe(initialScore + 1);
+  });
+
+  it('should increment score for each apple eaten', () => {
+    const game = new GameLogic(_defaultStage);
+    const snake = game.state.snakes[0];
+
+    // Eat first apple
+    game.state.applePos = new Vector(6, 5);
+    game.state.speed = 10;
+    game.advanceTime(100);
+    expect(snake.score).toBe(1);
+
+    // Eat second apple
+    game.state.applePos = new Vector(7, 5);
+    game.advanceTime(100);
+    expect(snake.score).toBe(2);
+
+    // Eat third apple
+    game.state.applePos = new Vector(8, 5);
+    game.advanceTime(100);
+    expect(snake.score).toBe(3);
+  });
+
   it('should remove apple when eaten and generate new one', () => {
     const game = new GameLogic(_defaultStage);
 

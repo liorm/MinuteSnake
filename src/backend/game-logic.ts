@@ -54,8 +54,8 @@ export interface IGameStage extends IGameOptions {
 
 /**
  * Represents the current state of a snake in the game.
- * Tracks position, length, occupied tiles, current direction
- * and queued direction changes.
+ * Tracks position, length, occupied tiles, current direction,
+ * queued direction changes, and score.
  */
 export interface IGameStateSnake {
   position: Vector;
@@ -63,6 +63,7 @@ export interface IGameStateSnake {
   tiles: Vector[];
   dir: EDirection;
   pendingDirs: EDirection[];
+  score: number;
 }
 
 /**
@@ -161,6 +162,7 @@ export class GameLogic {
         tiles: [],
         dir: snake.direction,
         pendingDirs: [],
+        score: 0,
       })),
       gameOver: false,
     };
@@ -250,6 +252,7 @@ export class GameLogic {
       if (snake.position.equals(state.applePos)) {
         state.applePos = null;
         snake.length += 2;
+        snake.score += 1;
       }
 
       while (snake.tiles.length > snake.length) {

@@ -91,6 +91,52 @@ export class GameRenderer {
     }
   }
 
+  private _drawScores(
+    ctx: CanvasRenderingContext2D,
+    gameState: IGameState
+  ): void {
+    const fontSize = Math.max(16, this._boardHeight / 20);
+    ctx.font = `Bold ${fontSize}px Arial`;
+
+    // Snake colors for score display (matching the snake colors)
+    const snakeColors = [
+      '#4040FF',
+      '#FF4040',
+      '#40FF40',
+      '#FFFF40',
+      '#FF40FF',
+      '#40FFFF',
+    ];
+
+    // Save current globalAlpha and set semi-transparent
+    const originalAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = 0.4;
+
+    gameState.snakes.forEach((snake, index) => {
+      // Use the score property from the snake state
+      const score = snake.score;
+      const playerName =
+        gameState.snakes.length > 1 ? `Player ${index + 1}` : 'Score';
+      const scoreText = `${playerName}: ${score}`;
+
+      // Position scores on the right side of the canvas
+      const x = this._canvasWidth - 200;
+      const y = 30 + index * (fontSize + 10);
+
+      // Draw score text with matching snake color
+      ctx.fillStyle = snakeColors[index % snakeColors.length];
+      ctx.fillText(scoreText, x, y);
+
+      // Add white outline for better visibility
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.strokeText(scoreText, x, y);
+    });
+
+    // Restore original globalAlpha
+    ctx.globalAlpha = originalAlpha;
+  }
+
   render(
     ctx: CanvasRenderingContext2D,
     gameState: IGameState,
@@ -140,6 +186,9 @@ export class GameRenderer {
       });
       this._drawTile(ctx, snake.position, headColor);
     });
+
+    // Draw scores
+    this._drawScores(ctx, gameState);
 
     // Draw playback indicator
     if (playbackMode) {

@@ -170,6 +170,12 @@ export class GameEngine {
     if (this._currentState === GameState.PLAYING) {
       this._advanceTimeToNow();
 
+      // Check for game over and transition to game over state
+      if (this._handler.state.gameOver) {
+        this._showGameOver();
+        return;
+      }
+
       // Let actors respond to state changes
       let hasInput = false;
       let iterations = 0;
