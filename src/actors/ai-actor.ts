@@ -66,7 +66,7 @@ export class AIActor implements IActor {
 
   onStateUpdate(state: IGameState): GameInput | null {
     const snake = state.snakes[this.snakeIdx];
-    const apple = state.applePos;
+    const apple = state.apple?.position;
 
     // If no apple or game is over, do nothing
     if (!apple || state.gameOver) {
