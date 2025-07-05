@@ -159,7 +159,7 @@ export class GameRenderer {
       const text = 'Game Over!';
       const measurement = ctx.measureText(text);
       const x = (this._canvasWidth - measurement.width) / 2;
-      const y = (this._canvasHeight - fontSize) / 2;
+      const y = this._canvasHeight / 2 + fontSize / 4;
 
       ctx.fillStyle = 'black';
       ctx.fillText(text, x, y);
