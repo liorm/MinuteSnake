@@ -690,4 +690,23 @@ export class WeightLoader {
       // await fs.promises.writeFile(path.join('src/weights', filename), jsonData, 'utf8');
     }
   }
+
+  /**
+   * Static convenience method for loading weights from a file path.
+   * Creates a new WeightLoader instance and loads weights from JSON file.
+   *
+   * @param filePath Path to the JSON weight file
+   * @returns Promise resolving to the weight architecture layers
+   */
+  public static async loadWeights(filePath: string): Promise<NetworkLayer[]> {
+    try {
+      // In a real implementation, we would read the file
+      // For now, we'll throw an error to indicate this needs to be implemented
+      throw new Error('File loading not implemented in static method');
+    } catch (error) {
+      throw new Error(
+        `Failed to load weights from ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
 }

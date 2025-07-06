@@ -43,7 +43,7 @@ vi.mock('fs/promises', () => ({
 describe('Training Script Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful training
     mockTrainer.startTraining.mockResolvedValue('test-session-123');
     mockTrainer.getDataCollector.mockReturnValue({
@@ -85,7 +85,7 @@ describe('Training Script Integration', () => {
         populationSize: 50,
       },
     };
-    
+
     const trainer = new Trainer(customConfig);
     expect(Trainer).toHaveBeenCalledWith(customConfig);
     expect(trainer).toBeDefined();
@@ -94,7 +94,7 @@ describe('Training Script Integration', () => {
   it('should start training and return session ID', async () => {
     const trainer = new Trainer();
     const sessionId = await trainer.startTraining();
-    
+
     expect(mockTrainer.startTraining).toHaveBeenCalledOnce();
     expect(sessionId).toBe('test-session-123');
   });
@@ -105,7 +105,7 @@ describe('Training Script Integration', () => {
       onGenerationComplete: vi.fn(),
       onTrainingComplete: vi.fn(),
     };
-    
+
     trainer.setCallbacks(callbacks);
     expect(mockTrainer.setCallbacks).toHaveBeenCalledWith(callbacks);
   });
@@ -114,21 +114,21 @@ describe('Training Script Integration', () => {
     const trainer = new Trainer();
     const error = new Error('Training failed');
     mockTrainer.startTraining.mockRejectedValue(error);
-    
+
     await expect(trainer.startTraining()).rejects.toThrow('Training failed');
   });
 
   it('should save configuration to file', async () => {
     const trainer = new Trainer();
     await trainer.saveConfig('test-config.json');
-    
+
     expect(mockTrainer.saveConfig).toHaveBeenCalledWith('test-config.json');
   });
 
   it('should provide training status information', () => {
     const trainer = new Trainer();
     const status = trainer.getTrainingStatus();
-    
+
     expect(status.sessionId).toBe('test-session-123');
     expect(status.bestFitness).toBe(0.75);
     expect(status.currentGeneration).toBe(100);
@@ -138,7 +138,7 @@ describe('Training Script Integration', () => {
   it('should stop training when requested', () => {
     const trainer = new Trainer();
     trainer.stopTraining();
-    
+
     expect(mockTrainer.stopTraining).toHaveBeenCalledOnce();
   });
 
@@ -146,7 +146,7 @@ describe('Training Script Integration', () => {
     const trainer = new Trainer();
     const dataCollector = trainer.getDataCollector();
     const sessionData = dataCollector.getSession('test-session-123');
-    
+
     expect(sessionData).toEqual({
       id: 'test-session-123',
       generations: [{ generation: 0 }, { generation: 1 }],
@@ -199,7 +199,7 @@ describe('Training Progress Reporting', () => {
       const seconds = Math.floor(ms / 1000);
       const minutes = Math.floor(seconds / 60);
       const hours = Math.floor(minutes / 60);
-      
+
       if (hours > 0) {
         return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
       } else if (minutes > 0) {
@@ -225,7 +225,11 @@ describe('Training Progress Reporting', () => {
   });
 
   it('should estimate remaining time based on current progress', () => {
-    const estimateRemainingTime = (elapsed: number, current: number, total: number): number => {
+    const estimateRemainingTime = (
+      elapsed: number,
+      current: number,
+      total: number
+    ): number => {
       const progress = current / total;
       if (progress === 0) return 0;
       const estimatedTotal = elapsed / progress;
@@ -242,10 +246,10 @@ describe('Training CLI Argument Parsing', () => {
   it('should parse basic arguments correctly', () => {
     const parseArgs = (args: string[]): Record<string, any> => {
       const parsed: Record<string, any> = {};
-      
+
       for (let i = 0; i < args.length; i++) {
         const arg = args[i];
-        
+
         switch (arg) {
           case '--generations':
           case '-g':
@@ -261,30 +265,45 @@ describe('Training CLI Argument Parsing', () => {
             break;
         }
       }
-      
+
       return parsed;
     };
 
     expect(parseArgs(['-g', '500'])).toEqual({ generations: 500 });
-    expect(parseArgs(['--population-size', '50'])).toEqual({ populationSize: 50 });
+    expect(parseArgs(['--population-size', '50'])).toEqual({
+      populationSize: 50,
+    });
     expect(parseArgs(['-v'])).toEqual({ verbose: true });
-    expect(parseArgs(['-g', '1000', '-v'])).toEqual({ generations: 1000, verbose: true });
+    expect(parseArgs(['-g', '1000', '-v'])).toEqual({
+      generations: 1000,
+      verbose: true,
+    });
   });
 
   it('should validate argument ranges', () => {
     const validateArgs = (args: Record<string, any>): void => {
-      if (args.generations !== undefined && (args.generations < 1 || args.generations > 10000)) {
+      if (
+        args.generations !== undefined &&
+        (args.generations < 1 || args.generations > 10000)
+      ) {
         throw new Error('Generations must be between 1 and 10000');
       }
-      
-      if (args.populationSize !== undefined && (args.populationSize < 10 || args.populationSize > 1000)) {
+
+      if (
+        args.populationSize !== undefined &&
+        (args.populationSize < 10 || args.populationSize > 1000)
+      ) {
         throw new Error('Population size must be between 10 and 1000');
       }
     };
 
     expect(() => validateArgs({ generations: 500 })).not.toThrow();
-    expect(() => validateArgs({ generations: 0 })).toThrow('Generations must be between 1 and 10000');
+    expect(() => validateArgs({ generations: 0 })).toThrow(
+      'Generations must be between 1 and 10000'
+    );
     expect(() => validateArgs({ populationSize: 50 })).not.toThrow();
-    expect(() => validateArgs({ populationSize: 5 })).toThrow('Population size must be between 10 and 1000');
+    expect(() => validateArgs({ populationSize: 5 })).toThrow(
+      'Population size must be between 10 and 1000'
+    );
   });
 });
