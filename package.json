@@ -20,7 +20,8 @@
     "prepare": "husky",
     "train": "tsx src/scripts/train.ts",
     "evaluate": "tsx src/scripts/evaluate.ts",
-    "benchmark": "tsx src/scripts/benchmark.ts"
+    "benchmark": "tsx src/scripts/benchmark.ts",
+    "weight-manager": "tsx src/scripts/weight-manager.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
