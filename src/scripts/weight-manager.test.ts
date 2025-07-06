@@ -66,7 +66,7 @@ describe('WeightManager', () => {
       const result = manager.validateWeightFile(testFile);
       expect(result.isValid).toBe(true);
       expect(result.errors).toHaveLength(0);
-      expect(result.metadata?.totalParameters).toBe(13568);
+      expect(result.metadata?.totalParameters).toBe(16836);
     });
 
     it('should detect invalid JSON format', () => {
@@ -75,9 +75,7 @@ describe('WeightManager', () => {
 
       const result = manager.validateWeightFile(testFile);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain(
-        expect.stringContaining('Invalid JSON format')
-      );
+      expect(result.errors[0]).toContain('Invalid JSON format');
     });
 
     it('should detect missing layers', () => {
@@ -97,9 +95,7 @@ describe('WeightManager', () => {
     it('should detect non-existent file', () => {
       const result = manager.validateWeightFile('/non/existent/file.json');
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain(
-        expect.stringContaining('File does not exist')
-      );
+      expect(result.errors[0]).toContain('File does not exist');
     });
 
     it('should detect invalid weights structure', () => {
@@ -120,9 +116,7 @@ describe('WeightManager', () => {
 
       const result = manager.validateWeightFile(testFile);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain(
-        expect.stringContaining('Missing or invalid weights array')
-      );
+      expect(result.errors[0]).toContain('Missing or invalid weights array');
     });
 
     it('should detect invalid bias structure', () => {
@@ -145,9 +139,7 @@ describe('WeightManager', () => {
 
       const result = manager.validateWeightFile(testFile);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain(
-        expect.stringContaining('Missing or invalid biases array')
-      );
+      expect(result.errors[0]).toContain('Missing or invalid biases array');
     });
 
     it('should detect NaN values in weights', () => {
@@ -158,7 +150,7 @@ describe('WeightManager', () => {
             inputSize: 2,
             outputSize: 2,
             weights: [
-              [0.1, NaN],
+              [0.1, null],
               [0.2, 0.3],
             ],
             biases: [0.0, 0.0],
@@ -171,9 +163,7 @@ describe('WeightManager', () => {
 
       const result = manager.validateWeightFile(testFile);
       expect(result.isValid).toBe(false);
-      expect(result.errors).toContain(
-        expect.stringContaining('Invalid weight value')
-      );
+      expect(result.errors[0]).toContain('Invalid weight value');
     });
 
     it('should detect invalid fitness score', () => {

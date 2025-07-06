@@ -116,11 +116,12 @@ class WeightManager {
           result.errors.push(`Layer ${i}: Biases array size mismatch`);
         }
 
-        // Check for NaN or infinite values
+        // Check for NaN, infinite, or null values
         for (let j = 0; j < layer.weights.length; j++) {
           if (!Array.isArray(layer.weights[j])) continue;
           for (let k = 0; k < layer.weights[j].length; k++) {
-            if (!isFinite(layer.weights[j][k])) {
+            const value = layer.weights[j][k];
+            if (value === null || !isFinite(value) || isNaN(value)) {
               result.isValid = false;
               result.errors.push(
                 `Layer ${i}: Invalid weight value at [${j}][${k}]`
@@ -130,7 +131,8 @@ class WeightManager {
         }
 
         for (let j = 0; j < layer.biases.length; j++) {
-          if (!isFinite(layer.biases[j])) {
+          const value = layer.biases[j];
+          if (value === null || !isFinite(value) || isNaN(value)) {
             result.isValid = false;
             result.errors.push(`Layer ${i}: Invalid bias value at [${j}]`);
           }
