@@ -686,8 +686,13 @@ export class WeightLoader {
       console.warn(`Would save weights to ${filename}`);
 
       // In a real implementation, you might want to write to a specific directory
-      // const fs = await import('fs');
-      // await fs.promises.writeFile(path.join('src/weights', filename), jsonData, 'utf8');
+      const fs = await import('fs');
+      const path = await import('path');
+      await fs.promises.writeFile(
+        path.join('src/weights/trained', filename),
+        jsonData,
+        'utf8'
+      );
     }
   }
 

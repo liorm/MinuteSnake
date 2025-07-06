@@ -60,17 +60,17 @@ export const defaultTrainingConfig: TrainingConfig = {
     gameStage: FitnessEvaluator.createDefaultGameStage(),
   } as FitnessConfig,
   networkArchitecture: [64, 128, 64, 4],
-  seed: 12345,
+  seed: 29292,
   saveBestIndividuals: true,
   checkpointInterval: 50,
   earlyStoppingConfig: {
     enabled: true,
-    patienceGenerations: 100,
+    patienceGenerations: 200,
     minImprovement: 0.001,
   },
   parallelConfig: {
     enabled: true,
-    maxConcurrency: 4,
+    maxConcurrency: 10,
   },
 };
 

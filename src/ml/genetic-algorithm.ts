@@ -32,7 +32,7 @@ export interface GeneticConfig {
  * Default genetic algorithm configuration.
  */
 export const defaultGeneticConfig: GeneticConfig = {
-  populationSize: 100,
+  populationSize: 200,
   mutationRate: 0.1,
   crossoverRate: 0.7,
   elitismRate: 0.1,
