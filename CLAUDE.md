@@ -21,6 +21,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage report
 
+### Neural Network Training Commands
+- `npm run train` - Train neural network AI agents using genetic algorithm
+- `npm run evaluate` - Evaluate and compare performance of different AI agents
+- `npm run benchmark` - Benchmark neural network inference performance
+
 ### Git Hooks
 - **Pre-commit hook** - Automatically runs before each commit:
   - `npm run lint` - Ensures code follows ESLint rules
@@ -42,6 +47,7 @@ MinuteSnake is a modern Snake game implementation using TypeScript, Canvas API, 
    - `IActor` interface (`src/actors/actor.ts`) - Base interface for all game actors
    - `HumanActor` (`src/actors/human-actor.ts`) - Human player keyboard input handling
    - `AIActor` (`src/actors/ai-actor.ts`) - AI player decision making and pathfinding
+   - `NNActor` (`src/actors/nn-actor.ts`) - Neural network-based AI player with trainable behavior
 6. **State Handlers** (`src/backend/state-handlers.ts`) - LiveHandler for active gameplay, PlaybackHandler for replay mode
 
 ### Key Design Patterns
@@ -71,21 +77,74 @@ MinuteSnake is a modern Snake game implementation using TypeScript, Canvas API, 
 - Diet apples provide strategic shrinking when snake becomes too long
 
 ### AI Behavior
-- AI snakes use pathfinding to reach apples while avoiding obstacles
+- **Traditional AI** (`AIActor`): Uses pathfinding to reach apples while avoiding obstacles
+- **Neural Network AI** (`NNActor`): Machine learning-based decision making with trainable behavior
 - Smart collision avoidance with walls, other snakes, and their own body
 - Configurable safety radius for avoiding other snakes
 - Adaptive wall avoidance (ignores wall safety when apple is near walls)
 
 ### Multi-Player Support
 - Up to 2 human players with different key mappings (Arrow keys, WASD)
-- Up to 4 AI players can be added
-- Players can be mixed (human + AI simultaneously)
+- Up to 4 AI players can be added (traditional or neural network)
+- Players can be mixed (human + AI + NN simultaneously)
+
+## Neural Network AI System
+
+### Architecture Overview
+The neural network AI system provides trainable agents that can learn to play Snake through genetic algorithm optimization.
+
+#### Components
+- **NeuralNetwork** (`src/ml/neural-network.ts`) - Feed-forward neural network implementation
+- **StateEncoder** (`src/ml/state-encoder.ts`) - Converts game state to neural network input
+- **NNActor** (`src/actors/nn-actor.ts`) - Actor implementation using neural network for decisions
+- **Trainer** (`src/ml/trainer.ts`) - Main training orchestrator with genetic algorithm
+- **FitnessEvaluator** (`src/ml/fitness-evaluator.ts`) - Evaluates agent performance through gameplay
+- **WeightLoader** (`src/ml/weight-loader.ts`) - Saves and loads trained neural network weights
+
+#### Network Architecture
+- **Input Layer**: 64 neurons (game state encoding)
+- **Hidden Layer 1**: 128 neurons (ReLU activation)
+- **Hidden Layer 2**: 64 neurons (ReLU activation)
+- **Output Layer**: 4 neurons (direction probabilities with softmax)
+
+#### Training Process
+1. **Population Initialization**: Create random neural network weights
+2. **Fitness Evaluation**: Each agent plays multiple games to assess performance
+3. **Selection**: Best performing agents are selected for reproduction
+4. **Crossover**: Combine weights from parent agents to create offspring
+5. **Mutation**: Apply random changes to weights to maintain diversity
+6. **Iteration**: Repeat process for multiple generations
+
+#### Usage Examples
+```bash
+# Basic training with default settings
+npm run train
+
+# Custom training configuration
+npm run train --generations 500 --population-size 50 --mutation-rate 0.05
+
+# Evaluate trained agents
+npm run evaluate
+
+# Compare neural network vs traditional AI
+npm run evaluate --compare-ai
+
+# Benchmark inference performance
+npm run benchmark
+```
+
+#### Weight Files
+Trained neural network weights are stored in `src/weights/` directory:
+- `default.json` - Default untrained weights
+- `examples/` - Sample trained weights with different skill levels
+- Custom trained weights saved automatically during training
 
 ## Development Notes
 
 - Build system uses esbuild for fast bundling
 - ESLint configured with strict TypeScript rules and explicit function return types
 - Tests use Vitest with global test functions
-- Game supports both human and AI players simultaneously
+- Game supports human, traditional AI, and neural network AI players simultaneously
 - Replay functionality built into core architecture
 - Deterministic apple placement using seeded random number generator
+- Neural network training uses genetic algorithm with configurable parameters
