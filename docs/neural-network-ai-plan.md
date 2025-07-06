@@ -51,38 +51,58 @@ Implement a neural network-based AI agent for MinuteSnake with a training system
 **Subagent Task**: Implement training CLI commands and scripts
 
 #### Tasks:
-- [ ] Add training CLI commands to package.json scripts
-- [ ] Create training script (`src/scripts/train.ts`)
-- [ ] Create evaluation script (`src/scripts/evaluate.ts`)
-- [ ] Generate sample trained weights for demonstration
-- [ ] Add comprehensive test coverage for training system
-- [ ] Update CLAUDE.md with training instructions and architecture details
+- [x] Add training CLI commands to package.json scripts
+- [x] Create training script (`src/scripts/train.ts`)
+- [x] Create evaluation script (`src/scripts/evaluate.ts`)
+- [x] Generate sample trained weights for demonstration
+- [x] Add comprehensive test coverage for training system
+- [x] Update CLAUDE.md with training instructions and architecture details
+
+**Status**: ✅ **COMPLETED** - Commit: `e74a7a8`
 
 **Commit**: `feat: add training CLI tools and scripts`
 
 #### Technical Details:
-- **CLI Commands**: `npm run train`, `npm run evaluate`
+- **CLI Commands**: `npm run train`, `npm run evaluate`, `npm run benchmark`
 - **Training Script**: Configurable training parameters, progress monitoring, checkpointing
 - **Evaluation Script**: Performance comparison between AI types, statistical analysis
-- **Sample Weights**: Pre-trained demonstration weights with different skill levels
+- **Benchmark Script**: Neural network inference performance testing and validation
+- **Sample Weights**: Pre-trained demonstration weights with different skill levels (beginner, intermediate, expert)
 - **Testing**: Full test coverage for training scripts and CLI integration
-- **Documentation**: Update CLAUDE.md with training commands and basic usage
+- **Documentation**: Complete CLAUDE.md update with neural network architecture and usage examples
 
-### Phase 3B: Documentation & Performance Tools
+### Phase 3B: Fix Script Tests & ESLint Issues
+**Subagent Task**: Resolve linting and testing issues for CLI scripts
+
+#### Tasks:
+- [ ] Fix ESLint configuration for Node.js scripts (console statements, process globals)
+- [ ] Resolve TypeScript type issues in script test files
+- [ ] Update test mocking to work correctly with vitest
+- [ ] Ensure all script tests pass without errors
+- [ ] Add proper Node.js environment configuration for scripts
+
+**Commit**: `fix: resolve ESLint and testing issues for CLI scripts`
+
+#### Technical Details:
+- **ESLint Config**: Proper Node.js environment settings for scripts directory
+- **Test Fixes**: Correct mocking patterns for filesystem and process APIs
+- **Type Safety**: Resolve TypeScript strict mode issues in test files
+- **Coverage**: Ensure comprehensive test coverage for all CLI functionality
+
+### Phase 3C: Documentation & Performance Tools
 **Subagent Task**: Complete documentation and add performance benchmarking
 
 #### Tasks:
-- [ ] Add performance benchmarking tools
 - [ ] Create training tutorial and best practices guide
 - [ ] Add weight file validation and management tools
+- [ ] Performance optimization recommendations
 
-**Commit**: `feat: add benchmarking tools and complete NN documentation`
+**Commit**: `feat: add training tutorial and weight management tools`
 
 #### Technical Details:
-- **Documentation**: Complete usage instructions, training guide, architecture overview
-- **Benchmarking**: `npm run benchmark` command with performance metrics
+- **Tutorial Documentation**: Step-by-step training guide with examples and troubleshooting
 - **Weight Management**: Tools for validating, comparing, and organizing weight files
-- **Tutorial**: Step-by-step training guide with examples and troubleshooting
+- **Performance Optimization**: Recommendations and best practices for training efficiency
 
 ## Architecture Overview
 
