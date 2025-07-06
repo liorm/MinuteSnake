@@ -75,19 +75,22 @@ Implement a neural network-based AI agent for MinuteSnake with a training system
 **Subagent Task**: Resolve linting and testing issues for CLI scripts
 
 #### Tasks:
-- [ ] Fix ESLint configuration for Node.js scripts (console statements, process globals)
-- [ ] Resolve TypeScript type issues in script test files
-- [ ] Update test mocking to work correctly with vitest
-- [ ] Ensure all script tests pass without errors
-- [ ] Add proper Node.js environment configuration for scripts
+- [x] Fix ESLint configuration for Node.js scripts (console statements, process globals)
+- [x] Resolve TypeScript type issues in script test files
+- [x] Update test mocking to work correctly with vitest
+- [x] Ensure all script tests pass without errors
+- [x] Add proper Node.js environment configuration for scripts
+
+**Status**: ✅ **COMPLETED** - Commit: `a280536`
 
 **Commit**: `fix: resolve ESLint and testing issues for CLI scripts`
 
 #### Technical Details:
-- **ESLint Config**: Proper Node.js environment settings for scripts directory
-- **Test Fixes**: Correct mocking patterns for filesystem and process APIs
-- **Type Safety**: Resolve TypeScript strict mode issues in test files
-- **Coverage**: Ensure comprehensive test coverage for all CLI functionality
+- **ESLint Config**: Added separate configurations for scripts directory and test files with proper Node.js globals
+- **Test Fixes**: Fixed vi.mocked() usage with proper type casting and filesystem API mocking
+- **Type Safety**: Resolved TypeScript strict mode issues and added explicit return types
+- **Coverage**: All script tests pass (39/39) with comprehensive CLI functionality coverage
+- **Missing Method**: Added static loadWeights method to WeightLoader class for CLI script compatibility
 
 ### Phase 3C: Documentation & Performance Tools
 **Subagent Task**: Complete documentation and add performance benchmarking
