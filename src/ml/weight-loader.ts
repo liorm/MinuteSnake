@@ -686,13 +686,20 @@ export class WeightLoader {
       console.warn(`Would save weights to ${filename}`);
 
       // In a real implementation, you might want to write to a specific directory
-      const fs = await import('fs');
-      const path = await import('path');
-      await fs.promises.writeFile(
-        path.join('src/weights/trained', filename),
-        jsonData,
-        'utf8'
-      );
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        await fs.promises.writeFile(
+          path.join('src/weights/trained', filename),
+          jsonData,
+          'utf8'
+        );
+      } catch {
+        // Ignore import errors in browser environment
+        console.warn(
+          'File system operations not available in browser environment'
+        );
+      }
     }
   }
 
