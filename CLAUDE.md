@@ -6,30 +6,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Development Commands
 
-- `npm run build` - Build project for development with sourcemaps
-- `npm run build:prod` - Build project for production (minified, no sourcemaps)
-- `npm run dev` - Start development build with watch mode
-- `npm run serve` - Start local development server with watch mode on port 8080
+- `pnpm run build` - Build project for development with sourcemaps
+- `pnpm run build:prod` - Build project for production (minified, no sourcemaps)
+- `pnpm run dev` - Start development build with watch mode
+- `pnpm run serve` - Start local development server with watch mode on port 8080
 
 ### Code Quality Commands
 
-- `npm run lint` - Run ESLint on TypeScript files
-- `npm run lint:fix` - Run ESLint with auto-fix
-- `npm run format` - Format all files with Prettier
-- `npm run format:check` - Check formatting with Prettier
+- `pnpm run lint` - Run ESLint on TypeScript files
+- `pnpm run lint:fix` - Run ESLint with auto-fix
+- `pnpm run format` - Format all files with Prettier
+- `pnpm run format:check` - Check formatting with Prettier
 
 ### Testing Commands
 
-- `npm run test` - Run all tests once
-- `npm run test:watch` - Run tests in watch mode
-- `npm run test:coverage` - Run tests with coverage report
+- `pnpm run test` - Run all tests once
+- `pnpm run test:watch` - Run tests in watch mode
+- `pnpm run test:coverage` - Run tests with coverage report
 
 ### Git Hooks
 
 - **Pre-commit hook** - Automatically runs before each commit:
-  - `npm run lint` - Ensures code follows ESLint rules
-  - `npm run format:check` - Verifies code is properly formatted
-  - `npm run test` - Runs all tests to ensure no regressions
+  - `pnpm run lint` - Ensures code follows ESLint rules
+  - `pnpm run format:check` - Verifies code is properly formatted
+  - `pnpm run test` - Runs all tests to ensure no regressions
   - Commit is blocked if any check fails
 
 ## Architecture Overview
