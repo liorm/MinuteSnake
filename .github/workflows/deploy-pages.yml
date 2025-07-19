@@ -12,17 +12,29 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install and Build 🔧
-        run: |
-          npm ci
-          npm run build:prod
+      - name: Setup pnpm 📦
+        uses: pnpm/action-setup@v2
+        with:
+          version: latest
+
+      - name: Setup Node.js ⚙️
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      - name: Install Dependencies 📥
+        run: pnpm install
+
+      - name: Build Frontend 🔧
+        run: pnpm --filter frontend build:prod
 
       - name: Prepare Deploy Directory 🔨
         run: |
           mkdir deploy
-          cp index.html deploy/
-          cp style.css deploy/
-          cp -r dist deploy/
+          cp packages/frontend/index.html deploy/
+          cp packages/frontend/style.css deploy/
+          cp -r packages/frontend/dist deploy/
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4

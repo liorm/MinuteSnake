@@ -4,12 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Build and Development Commands
 
-### Core Development Commands
+****### Monorepo Commands (from root)
 
-- `pnpm run build` - Build project for development with sourcemaps
-- `pnpm run build:prod` - Build project for production (minified, no sourcemaps)
-- `pnpm run dev` - Start development build with watch mode
-- `pnpm run serve` - Start local development server with watch mode on port 8080
+- `pnpm run build` - Build all packages
+- `pnpm run dev` - Start frontend development build with watch mode
+- `pnpm run serve` - Start frontend local development server with watch mode on port 8080
+
+### Frontend-specific Commands (from packages/frontend or using --filter)
+
+- `pnpm --filter frontend build` - Build frontend for development with sourcemaps
+- `pnpm --filter frontend build:prod` - Build frontend for production (minified, no sourcemaps)
+- `pnpm --filter frontend dev` - Start frontend development build with watch mode
+- `pnpm --filter frontend serve` - Start frontend local development server with watch mode on port 8080
 
 ### Code Quality Commands
 
@@ -34,19 +40,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-MinuteSnake is a modern Snake game implementation using TypeScript, Canvas API, and a modular architecture:
+MinuteSnake is a modern Snake game implementation using TypeScript, Canvas API, and a modular monorepo architecture:
 
-### Core Components
+### Monorepo Structure
 
-1. **GameApp** (`src/app.ts`) - Main entry point that initializes canvas and creates GameEngine
-2. **GameEngine** (`src/game-engine.ts`) - Central orchestrator managing game loop, input handling, and state coordination
-3. **GameRenderer** (`src/game-renderer.ts`) - Handles all visual rendering on HTML canvas
-4. **GameLogic** (`src/backend/game-logic.ts`) - Core game rules, state management, and collision detection
-5. **Actor System** (`src/actors/`) - Interface and implementations for game entities:
-   - `IActor` interface (`src/actors/actor.ts`) - Base interface for all game actors
-   - `HumanActor` (`src/actors/human-actor.ts`) - Human player keyboard input handling
-   - `AIActor` (`src/actors/ai-actor.ts`) - AI player decision making and pathfinding
-6. **State Handlers** (`src/backend/state-handlers.ts`) - LiveHandler for active gameplay, PlaybackHandler for replay mode
+- **Frontend Package** (`packages/frontend/`) - Contains the complete game implementation
+- **Backend Package** (`packages/backend/`) - Placeholder for future backend functionality
+
+### Core Components (Frontend Package)
+
+1. **GameApp** (`packages/frontend/src/app.ts`) - Main entry point that initializes canvas and creates GameEngine
+2. **GameEngine** (`packages/frontend/src/game-engine.ts`) - Central orchestrator managing game loop, input handling, and state coordination
+3. **GameRenderer** (`packages/frontend/src/game-renderer.ts`) - Handles all visual rendering on HTML canvas
+4. **GameLogic** (`packages/frontend/src/backend/game-logic.ts`) - Core game rules, state management, and collision detection
+5. **Actor System** (`packages/frontend/src/actors/`) - Interface and implementations for game entities:
+   - `IActor` interface (`packages/frontend/src/actors/actor.ts`) - Base interface for all game actors
+   - `HumanActor` (`packages/frontend/src/actors/human-actor.ts`) - Human player keyboard input handling
+   - `AIActor` (`packages/frontend/src/actors/ai-actor.ts`) - AI player decision making and pathfinding
+6. **State Handlers** (`packages/frontend/src/backend/state-handlers.ts`) - LiveHandler for active gameplay, PlaybackHandler for replay mode
 
 ### Key Design Patterns
 

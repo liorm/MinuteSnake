@@ -7,32 +7,16 @@ settings:
 importers:
 
   .:
-    dependencies:
-      seedrandom:
-        specifier: ^3.0.5
-        version: 3.0.5
     devDependencies:
       '@eslint/js':
         specifier: ^9.25.0
         version: 9.31.0
-      '@types/seedrandom':
-        specifier: ^3.0.0
-        version: 3.0.8
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.30.1
         version: 8.37.0(@typescript-eslint/parser@8.37.0(eslint@9.31.0)(typescript@5.8.3))(eslint@9.31.0)(typescript@5.8.3)
       '@typescript-eslint/parser':
         specifier: ^8.30.1
         version: 8.37.0(eslint@9.31.0)(typescript@5.8.3)
-      '@vitest/coverage-v8':
-        specifier: ^3.2
-        version: 3.2.4(vitest@3.2.4)
-      '@vitest/ui':
-        specifier: ^3.2
-        version: 3.2.4(vitest@3.2.4)
-      esbuild:
-        specifier: ^0.25.0
-        version: 0.25.7
       eslint:
         specifier: ^9.25.0
         version: 9.31.0
@@ -42,9 +26,6 @@ importers:
       eslint-plugin-import:
         specifier: ^2.32.0
         version: 2.32.0(@typescript-eslint/parser@8.37.0(eslint@9.31.0)(typescript@5.8.3))(eslint@9.31.0)
-      http-server:
-        specifier: ^14.1.1
-        version: 14.1.1
       husky:
         specifier: ^9.1.7
         version: 9.1.7
@@ -60,6 +41,33 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.8.3
+
+  packages/backend: {}
+
+  packages/frontend:
+    dependencies:
+      seedrandom:
+        specifier: ^3.0.5
+        version: 3.0.5
+    devDependencies:
+      '@types/seedrandom':
+        specifier: ^3.0.0
+        version: 3.0.8
+      '@vitest/coverage-v8':
+        specifier: ^3.2
+        version: 3.2.4(vitest@3.2.4)
+      '@vitest/ui':
+        specifier: ^3.2
+        version: 3.2.4(vitest@3.2.4)
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.7
+      http-server:
+        specifier: ^14.1.1
+        version: 14.1.1
+      rimraf:
+        specifier: ^5.0.0
+        version: 5.0.10
       vitest:
         specifier: ^3.2
         version: 3.2.4(@vitest/ui@3.2.4)(yaml@2.8.0)

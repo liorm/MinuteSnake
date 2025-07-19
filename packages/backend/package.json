@@ -1,0 +1,23 @@
+{
+  "name": "@minute-snake/backend",
+  "version": "1.0.0",
+  "description": "MinuteSnake Game Backend",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "echo 'Backend build not implemented yet'",
+    "dev": "echo 'Backend dev not implemented yet'",
+    "start": "echo 'Backend start not implemented yet'",
+    "lint": "echo 'Backend lint not implemented yet'",
+    "lint:fix": "echo 'Backend lint:fix not implemented yet'",
+    "test": "echo 'Backend test not implemented yet'",
+    "test:watch": "echo 'Backend test:watch not implemented yet'",
+    "test:coverage": "echo 'Backend test:coverage not implemented yet'"
+  },
+  "keywords": [
+    "snake",
+    "game",
+    "backend"
+  ],
+  "private": true
+}
