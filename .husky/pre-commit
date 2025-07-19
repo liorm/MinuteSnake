@@ -1,26 +1,17 @@
 #!/bin/sh
 
-# Run linting
-echo "Running ESLint..."
-npm run lint
+# Run lint-staged on staged files
+npx lint-staged
 if [ $? -ne 0 ]; then
-  echo "❌ ESLint failed (running 'npm run lint'). Please fix the issues before committing."
+  echo "❌ Lint-staged failed. Please fix the issues before committing."
   exit 1
 fi
 
-# Check code formatting
-echo "Checking code formatting..."
-npm run format:check >/dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ Code formatting issues found (running 'npm run format:check'). Run 'npm run format' to fix them automatically."
-  exit 1
-fi
-
-# Run tests
+# Run tests (optional: you can optimize to only run tests for changed files)
 echo "Running tests..."
-npm run test
+pnpm run test
 if [ $? -ne 0 ]; then
-  echo "❌ Tests failed (running 'npm run test'). Please fix them before committing."
+  echo "❌ Tests failed (running 'pnpm run test'). Please fix them before committing."
   exit 1
 fi
 

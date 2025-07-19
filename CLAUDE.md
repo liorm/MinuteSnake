@@ -5,23 +5,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Build and Development Commands
 
 ### Core Development Commands
+
 - `npm run build` - Build project for development with sourcemaps
 - `npm run build:prod` - Build project for production (minified, no sourcemaps)
 - `npm run dev` - Start development build with watch mode
 - `npm run serve` - Start local development server with watch mode on port 8080
 
 ### Code Quality Commands
+
 - `npm run lint` - Run ESLint on TypeScript files
 - `npm run lint:fix` - Run ESLint with auto-fix
 - `npm run format` - Format all files with Prettier
 - `npm run format:check` - Check formatting with Prettier
 
 ### Testing Commands
+
 - `npm run test` - Run all tests once
 - `npm run test:watch` - Run tests in watch mode
 - `npm run test:coverage` - Run tests with coverage report
 
 ### Git Hooks
+
 - **Pre-commit hook** - Automatically runs before each commit:
   - `npm run lint` - Ensures code follows ESLint rules
   - `npm run format:check` - Verifies code is properly formatted
@@ -62,21 +66,25 @@ MinuteSnake is a modern Snake game implementation using TypeScript, Canvas API, 
 ## Game Features
 
 ### Apple System
+
 - **Normal Apples** (90% spawn rate) - Increase snake target length by 3 tiles
 - **Diet Apples** (10% spawn rate) - Reduce snake target length to 50% of current
 
 ### Snake Length System
+
 - Snakes have both current `length` and `targetLength` properties
 - Length adjusts gradually (1 tile per step) towards target length
 - Diet apples provide strategic shrinking when snake becomes too long
 
 ### AI Behavior
+
 - AI snakes use pathfinding to reach apples while avoiding obstacles
 - Smart collision avoidance with walls, other snakes, and their own body
 - Configurable safety radius for avoiding other snakes
 - Adaptive wall avoidance (ignores wall safety when apple is near walls)
 
 ### Multi-Player Support
+
 - Up to 2 human players with different key mappings (Arrow keys, WASD)
 - Up to 4 AI players can be added
 - Players can be mixed (human + AI simultaneously)
@@ -89,3 +97,7 @@ MinuteSnake is a modern Snake game implementation using TypeScript, Canvas API, 
 - Game supports both human and AI players simultaneously
 - Replay functionality built into core architecture
 - Deterministic apple placement using seeded random number generator
+
+## Task Management Notes
+
+- Use @.claude/TM.md to understand how to use task management for development
