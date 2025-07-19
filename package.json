@@ -43,11 +43,11 @@
   },
   "lint-staged": {
     "*.{js,ts,tsx,jsx}": [
-      "pnpm lint --fix",
-      "pnpm format --write"
+      "npm run format --write",
+      "npm run lint --fix"
     ],
     "*.{json,html,css}": [
-      "pnpm format --write"
+      "npm run format --write"
     ]
   }
 }
