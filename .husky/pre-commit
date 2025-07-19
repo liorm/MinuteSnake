@@ -9,9 +9,9 @@ fi
 
 # Run tests (optional: you can optimize to only run tests for changed files)
 echo "Running tests..."
-pnpm run test
+npm run test
 if [ $? -ne 0 ]; then
-  echo "❌ Tests failed (running 'pnpm run test'). Please fix them before committing."
+  echo "❌ Tests failed (running 'npm run test'). Please fix them before committing."
   exit 1
 fi
 
