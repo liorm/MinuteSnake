@@ -66,11 +66,7 @@ describe('GameLogic - Private Methods', () => {
       const game = new GameLogic(stage);
 
       // Setup snake tiles
-      game.state.snakes[0].tiles = [
-        new Vector(2, 2),
-        new Vector(2, 3),
-        new Vector(2, 4),
-      ];
+      game.state.snakes[0].tiles = [new Vector(2, 2), new Vector(2, 3), new Vector(2, 4)];
 
       // Get private method access
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Required for testing private method
@@ -96,9 +92,7 @@ describe('GameLogic - Private Methods', () => {
         expect(stage.blocks.some(block => block.equals(applePos))).toBeFalsy();
 
         // Verify apple is not on snake
-        expect(
-          game.state.snakes[0].tiles.some(tile => tile.equals(applePos))
-        ).toBeFalsy();
+        expect(game.state.snakes[0].tiles.some(tile => tile.equals(applePos))).toBeFalsy();
       }
     });
 

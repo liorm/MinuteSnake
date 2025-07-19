@@ -2,18 +2,10 @@ import { EDirection, GameInput, IGameStage } from './backend/game-logic';
 import { IActor, HumanActor, AIActor } from './actors/index';
 import { GameRenderer } from './game-renderer';
 import { GameState } from './game-state';
-import {
-  WelcomeRenderer,
-  WelcomeScreenCallbacks,
-  PlayerConfiguration,
-} from './welcome-renderer';
+import { WelcomeRenderer, WelcomeScreenCallbacks, PlayerConfiguration } from './welcome-renderer';
 
 const MAX_INPUT_ITERATIONS = 10;
-import {
-  GameHandlerBase,
-  LiveHandler,
-  PlaybackHandler,
-} from './backend/state-handlers';
+import { GameHandlerBase, LiveHandler, PlaybackHandler } from './backend/state-handlers';
 import { Vector } from './backend/utils';
 
 /**
@@ -40,8 +32,7 @@ export class GameEngine {
     private ctx: CanvasRenderingContext2D
   ) {
     this._welcomeCallbacks = {
-      onStartGame: (config: PlayerConfiguration): void =>
-        this._startGame(config),
+      onStartGame: (config: PlayerConfiguration): void => this._startGame(config),
     };
   }
 
@@ -54,9 +45,7 @@ export class GameEngine {
   }
 
   private _initListeners(): void {
-    this.window.addEventListener('resize', () =>
-      this._updateCanvasDimensions()
-    );
+    this.window.addEventListener('resize', () => this._updateCanvasDimensions());
     this.window.addEventListener('keydown', e => this._onKeyDown(e));
     this.canvas.addEventListener('click', e => this._onCanvasClick(e));
   }
@@ -75,10 +64,7 @@ export class GameEngine {
 
     // Handle game over screen input
     if (this._currentState === GameState.GAME_OVER) {
-      if (
-        event.key.toLowerCase() === 'enter' ||
-        event.key.toLowerCase() === 'n'
-      ) {
+      if (event.key.toLowerCase() === 'enter' || event.key.toLowerCase() === 'n') {
         this._showWelcomeScreen();
       } else if (event.key.toLowerCase() === 'escape') {
         this._showWelcomeScreen();
@@ -146,16 +132,10 @@ export class GameEngine {
 
     // Only update game renderer if we're in playing state and have initialized it
     if (this._currentState === GameState.PLAYING && this._handler) {
-      this._gameRenderer.onCanvasSizeChanged(
-        this.canvas.width,
-        this.canvas.height
-      );
+      this._gameRenderer.onCanvasSizeChanged(this.canvas.width, this.canvas.height);
     }
 
-    this._welcomeRenderer.onCanvasSizeChanged(
-      this.canvas.width,
-      this.canvas.height
-    );
+    this._welcomeRenderer.onCanvasSizeChanged(this.canvas.width, this.canvas.height);
     this._draw();
   }
 
@@ -286,18 +266,12 @@ export class GameEngine {
 
   private _resumeLiveMode(): void {
     this._isPlaybackMode = false;
-    this._handler = new LiveHandler(
-      this._handler.gameStage,
-      this._handler.savedInputs
-    );
+    this._handler = new LiveHandler(this._handler.gameStage, this._handler.savedInputs);
   }
 
   private _enterPlaybackMode(): void {
     this._isPlaybackMode = true;
-    this._handler = new PlaybackHandler(
-      this._handler.gameStage,
-      this._handler.savedInputs
-    );
+    this._handler = new PlaybackHandler(this._handler.gameStage, this._handler.savedInputs);
     this._lastEngineTime = performance.now();
   }
 
@@ -310,11 +284,7 @@ export class GameEngine {
       this._currentState === GameState.PLAYING ||
       this._currentState === GameState.GAME_OVER
     ) {
-      this._gameRenderer.render(
-        this.ctx,
-        this._handler.state,
-        this._isPlaybackMode
-      );
+      this._gameRenderer.render(this.ctx, this._handler.state, this._isPlaybackMode);
     }
   }
 
@@ -354,10 +324,7 @@ export class GameEngine {
     this._restartLiveMode(playerConfig);
 
     // Update canvas dimensions for game renderer now that we have game options
-    this._gameRenderer.onCanvasSizeChanged(
-      this.canvas.width,
-      this.canvas.height
-    );
+    this._gameRenderer.onCanvasSizeChanged(this.canvas.width, this.canvas.height);
   }
 
   private _getKeyMapForPlayer(playerIndex: number): {

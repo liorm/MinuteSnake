@@ -123,10 +123,7 @@ describe('GameLogic - Input', () => {
         snakeIdx: 0,
       });
 
-      expect(game.state.snakes[0].pendingDirs).toEqual([
-        EDirection.UP,
-        EDirection.LEFT,
-      ]);
+      expect(game.state.snakes[0].pendingDirs).toEqual([EDirection.UP, EDirection.LEFT]);
       expect(callbackCount).toBe(2);
 
       game.input({
@@ -135,10 +132,7 @@ describe('GameLogic - Input', () => {
         snakeIdx: 0,
       });
 
-      expect(game.state.snakes[0].pendingDirs).toEqual([
-        EDirection.UP,
-        EDirection.LEFT,
-      ]);
+      expect(game.state.snakes[0].pendingDirs).toEqual([EDirection.UP, EDirection.LEFT]);
       expect(callbackCount).toBe(2);
     });
 

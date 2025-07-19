@@ -70,30 +70,19 @@ describe('GameLogic - Constructor', () => {
     const game = new GameLogic(stage);
 
     const perimeterBlocks = 2 * (stage.xTiles + stage.yTiles) - 4;
-    const expectedBlocks =
-      perimeterBlocks - stage.wallHoles.length + stage.blocks.length;
+    const expectedBlocks = perimeterBlocks - stage.wallHoles.length + stage.blocks.length;
 
     expect(game.state.blocks.length).toBe(expectedBlocks);
 
     expect(game.state.blocks.some(b => b.equals(new Vector(0, 1)))).toBeFalsy();
     expect(game.state.blocks.some(b => b.equals(new Vector(4, 2)))).toBeFalsy();
 
-    expect(
-      game.state.blocks.some(b => b.equals(new Vector(2, 2)))
-    ).toBeTruthy();
+    expect(game.state.blocks.some(b => b.equals(new Vector(2, 2)))).toBeTruthy();
 
-    expect(
-      game.state.blocks.some(b => b.equals(new Vector(0, 0)))
-    ).toBeTruthy();
-    expect(
-      game.state.blocks.some(b => b.equals(new Vector(4, 0)))
-    ).toBeTruthy();
-    expect(
-      game.state.blocks.some(b => b.equals(new Vector(0, 3)))
-    ).toBeTruthy();
-    expect(
-      game.state.blocks.some(b => b.equals(new Vector(4, 3)))
-    ).toBeTruthy();
+    expect(game.state.blocks.some(b => b.equals(new Vector(0, 0)))).toBeTruthy();
+    expect(game.state.blocks.some(b => b.equals(new Vector(4, 0)))).toBeTruthy();
+    expect(game.state.blocks.some(b => b.equals(new Vector(0, 3)))).toBeTruthy();
+    expect(game.state.blocks.some(b => b.equals(new Vector(4, 3)))).toBeTruthy();
   });
 
   it('should initialize snakes with correct positions, lengths, directions, and empty pendingDirs', () => {

@@ -315,11 +315,7 @@ export class GameLogic {
         continue;
       }
 
-      if (
-        this._state.snakes.find(
-          snake => !!snake.tiles.find(v => v.equals(newPos))
-        )
-      ) {
+      if (this._state.snakes.find(snake => !!snake.tiles.find(v => v.equals(newPos)))) {
         continue;
       }
 
@@ -335,10 +331,7 @@ export class GameLogic {
     };
   }
 
-  private _applyAppleEffect(
-    snake: IGameStateSnake,
-    appleType: AppleType
-  ): void {
+  private _applyAppleEffect(snake: IGameStateSnake, appleType: AppleType): void {
     switch (appleType) {
       case AppleType.NORMAL:
         snake.targetLength += 3;

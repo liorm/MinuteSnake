@@ -95,9 +95,7 @@ describe('GameLogic - Apple Interactions', () => {
     expect(applePos.y).toBeLessThan(10);
 
     expect(game.state.blocks.some(b => b.equals(applePos))).toBe(false);
-    expect(game.state.snakes[0].tiles.some(t => t.equals(applePos))).toBe(
-      false
-    );
+    expect(game.state.snakes[0].tiles.some(t => t.equals(applePos))).toBe(false);
   });
 
   it('should generate deterministic apple positions with same seed', () => {

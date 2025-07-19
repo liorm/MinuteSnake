@@ -92,12 +92,7 @@ describe('GameLogic - Advance Time', () => {
         xTiles: 11,
         yTiles: 11,
         seed: 12345,
-        wallHoles: [
-          new Vector(5, 0),
-          new Vector(5, 10),
-          new Vector(0, 5),
-          new Vector(10, 5),
-        ],
+        wallHoles: [new Vector(5, 0), new Vector(5, 10), new Vector(0, 5), new Vector(10, 5)],
         blocks: [],
         snakes: [{ position: new Vector(5, 5), direction: EDirection.RIGHT }],
       });
@@ -105,11 +100,7 @@ describe('GameLogic - Advance Time', () => {
       game.state.speed = 10;
       const snake = game.state.snakes[0];
 
-      const testDirection = (
-        dir: EDirection,
-        hole: Vector,
-        wrapTo: Vector
-      ): void => {
+      const testDirection = (dir: EDirection, hole: Vector, wrapTo: Vector): void => {
         game.input({
           inputType: 'direction',
           dir,
@@ -149,12 +140,7 @@ describe('GameLogic - Advance Time', () => {
       const game = new GameLogic(stage);
 
       // Test all valid directions
-      const directions = [
-        EDirection.UP,
-        EDirection.DOWN,
-        EDirection.LEFT,
-        EDirection.RIGHT,
-      ];
+      const directions = [EDirection.UP, EDirection.DOWN, EDirection.LEFT, EDirection.RIGHT];
       directions.forEach(dir => {
         game.state.snakes[0].dir = dir;
         game.state.snakes[0].position = new Vector(4, 4); // Reset position
@@ -257,12 +243,7 @@ describe('GameLogic - Advance Time', () => {
         xTiles: 11,
         yTiles: 11,
         seed: 12345,
-        wallHoles: [
-          new Vector(5, 0),
-          new Vector(5, 10),
-          new Vector(0, 5),
-          new Vector(10, 5),
-        ],
+        wallHoles: [new Vector(5, 0), new Vector(5, 10), new Vector(0, 5), new Vector(10, 5)],
         blocks: [],
         snakes: [
           { position: new Vector(2, 5), direction: EDirection.RIGHT },

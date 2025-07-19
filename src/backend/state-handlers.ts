@@ -1,10 +1,4 @@
-import {
-  GameLogic,
-  IGameStage,
-  IGameEventInput,
-  IGameState,
-  GameInput,
-} from './game-logic';
+import { GameLogic, IGameStage, IGameEventInput, IGameState, GameInput } from './game-logic';
 
 /**
  * Abstract base class defining the core game state management interface.
@@ -92,9 +86,7 @@ export class PlaybackHandler extends GameHandlerBase {
         newPlayedDuration = nextInput.eventTime;
       }
 
-      this._gameLogic.advanceTime(
-        newPlayedDuration - this._gameLogic.totalDuration
-      );
+      this._gameLogic.advanceTime(newPlayedDuration - this._gameLogic.totalDuration);
 
       if (this._gameLogic.totalDuration >= nextInput.eventTime) {
         this._gameLogic.input(nextInput.gameInput);
@@ -141,15 +133,12 @@ export class LiveHandler extends GameHandlerBase {
 
     if (this.savedInputs.length > 0) {
       for (const savedInput of this.savedInputs) {
-        this._gameLogic.advanceTime(
-          savedInput.eventTime - this._gameLogic.totalDuration
-        );
+        this._gameLogic.advanceTime(savedInput.eventTime - this._gameLogic.totalDuration);
         this._gameLogic.input(savedInput.gameInput);
       }
     }
 
-    this._gameLogic.onInputCallback = (e: IGameEventInput): void =>
-      this._onGameInput(e);
+    this._gameLogic.onInputCallback = (e: IGameEventInput): void => this._onGameInput(e);
   }
 
   advanceTime(duration: number): void {

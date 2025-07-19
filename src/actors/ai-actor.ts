@@ -12,11 +12,7 @@ export class AIActor implements IActor {
     private readonly safetyRadius: number = 4
   ) {}
 
-  private isNearOtherSnake(
-    pos: Vector,
-    state: IGameState,
-    radius: number
-  ): boolean {
+  private isNearOtherSnake(pos: Vector, state: IGameState, radius: number): boolean {
     const otherSnakes = state.snakes.filter((_, idx) => idx !== this.snakeIdx);
     for (const snake of otherSnakes) {
       for (const tile of snake.tiles) {
@@ -36,11 +32,7 @@ export class AIActor implements IActor {
     return bodyTiles.some(tile => tile.x === pos.x && tile.y === pos.y);
   }
 
-  private isTooCloseToWalls(
-    pos: Vector,
-    state: IGameState,
-    radius: number
-  ): boolean {
+  private isTooCloseToWalls(pos: Vector, state: IGameState, radius: number): boolean {
     const boardSize = state.blocks.length - 1; // Assuming square board with walls at edges
     return (
       pos.x < radius ||
@@ -50,11 +42,7 @@ export class AIActor implements IActor {
     );
   }
 
-  private isAppleNearWalls(
-    apple: Vector,
-    state: IGameState,
-    radius: number
-  ): boolean {
+  private isAppleNearWalls(apple: Vector, state: IGameState, radius: number): boolean {
     const boardSize = state.blocks.length - 1;
     return (
       apple.x < radius ||
@@ -126,12 +114,7 @@ export class AIActor implements IActor {
     }
 
     // If no good moves found, try to find any safe move that avoids other snakes
-    const allDirections = [
-      EDirection.UP,
-      EDirection.RIGHT,
-      EDirection.DOWN,
-      EDirection.LEFT,
-    ];
+    const allDirections = [EDirection.UP, EDirection.RIGHT, EDirection.DOWN, EDirection.LEFT];
     for (const dir of allDirections) {
       const nextPos = this.getNextPosition(snake.position, dir, state);
       if (
@@ -152,11 +135,7 @@ export class AIActor implements IActor {
     return null;
   }
 
-  private getNextPosition(
-    pos: Vector,
-    dir: EDirection,
-    state: IGameState
-  ): Vector {
+  private getNextPosition(pos: Vector, dir: EDirection, state: IGameState): Vector {
     let x = pos.x;
     let y = pos.y;
 

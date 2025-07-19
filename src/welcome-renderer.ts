@@ -51,10 +51,7 @@ export class WelcomeRenderer {
    * @param event Keyboard event
    * @param callbacks Callback functions for screen completion
    */
-  handleKeyInput(
-    event: KeyboardEvent,
-    callbacks: WelcomeScreenCallbacks
-  ): void {
+  handleKeyInput(event: KeyboardEvent, callbacks: WelcomeScreenCallbacks): void {
     const key = event.key.toLowerCase();
 
     switch (key) {
@@ -62,10 +59,7 @@ export class WelcomeRenderer {
         this._selectedMenuItem = Math.max(0, this._selectedMenuItem - 1);
         break;
       case 'arrowdown':
-        this._selectedMenuItem = Math.min(
-          WelcomeMenuItem.START,
-          this._selectedMenuItem + 1
-        );
+        this._selectedMenuItem = Math.min(WelcomeMenuItem.START, this._selectedMenuItem + 1);
         break;
       case 'arrowleft':
         this._adjustPlayerCount(-1);
@@ -86,10 +80,7 @@ export class WelcomeRenderer {
    * @param event Mouse event
    * @param callbacks Callback functions for screen completion
    */
-  handleClickInput(
-    _event: MouseEvent,
-    callbacks: WelcomeScreenCallbacks
-  ): void {
+  handleClickInput(_event: MouseEvent, callbacks: WelcomeScreenCallbacks): void {
     // For now, clicking just starts the game if we're on the start option
     if (this._selectedMenuItem === WelcomeMenuItem.START) {
       this._startGame(callbacks);
@@ -103,10 +94,7 @@ export class WelcomeRenderer {
         Math.min(2, this._playerConfig.humanPlayers + delta)
       );
     } else if (this._selectedMenuItem === WelcomeMenuItem.AI_PLAYERS) {
-      this._playerConfig.aiPlayers = Math.max(
-        0,
-        Math.min(6, this._playerConfig.aiPlayers + delta)
-      );
+      this._playerConfig.aiPlayers = Math.max(0, Math.min(6, this._playerConfig.aiPlayers + delta));
     }
   }
 
@@ -149,11 +137,7 @@ export class WelcomeRenderer {
     // Draw subtitle
     ctx.font = `${subtitleFontSize}px Arial`;
     ctx.fillStyle = '#95a5a6';
-    ctx.fillText(
-      'Configure Players',
-      canvasWidth / 2,
-      canvasHeight / 6 + titleFontSize * 0.8
-    );
+    ctx.fillText('Configure Players', canvasWidth / 2, canvasHeight / 6 + titleFontSize * 0.8);
 
     // Menu setup
     const menuStartY = canvasHeight * 0.4;
@@ -181,12 +165,7 @@ export class WelcomeRenderer {
       // Draw selection indicator
       if (isSelected) {
         ctx.fillStyle = '#3498db';
-        ctx.fillRect(
-          canvasWidth / 2 - 200,
-          y - menuFontSize * 0.7,
-          400,
-          menuFontSize * 1.4
-        );
+        ctx.fillRect(canvasWidth / 2 - 200, y - menuFontSize * 0.7, 400, menuFontSize * 1.4);
       }
 
       // Draw menu item text
@@ -212,8 +191,7 @@ export class WelcomeRenderer {
     });
 
     // Draw instructions
-    const instructionY =
-      menuStartY + menuItems.length * menuItemHeight + menuFontSize * 2;
+    const instructionY = menuStartY + menuItems.length * menuItemHeight + menuFontSize * 2;
     const instructionFontSize = Math.min(canvasWidth, canvasHeight) / 35;
     ctx.font = `${instructionFontSize}px Arial`;
     ctx.fillStyle = '#bdc3c7';
@@ -231,8 +209,7 @@ export class WelcomeRenderer {
     });
 
     // Draw total players validation
-    const totalPlayers =
-      this._playerConfig.humanPlayers + this._playerConfig.aiPlayers;
+    const totalPlayers = this._playerConfig.humanPlayers + this._playerConfig.aiPlayers;
     if (totalPlayers === 0) {
       ctx.font = `Bold ${menuFontSize * 0.8}px Arial`;
       ctx.fillStyle = '#e74c3c';

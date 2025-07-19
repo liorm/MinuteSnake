@@ -41,10 +41,7 @@ export class GameRenderer {
   }
 
   onCanvasSizeChanged(w: number, h: number): void {
-    const tileLength = Math.min(
-      w / this._gameOptions.xTiles,
-      h / this._gameOptions.yTiles
-    );
+    const tileLength = Math.min(w / this._gameOptions.xTiles, h / this._gameOptions.yTiles);
 
     this._tileWidth = tileLength;
     this._tileHeight = tileLength;
@@ -56,23 +53,14 @@ export class GameRenderer {
     this._canvasHeight = h;
   }
 
-  private _drawTile(
-    ctx: CanvasRenderingContext2D,
-    v: Vector,
-    style: string | ITileStyle
-  ): void {
+  private _drawTile(ctx: CanvasRenderingContext2D, v: Vector, style: string | ITileStyle): void {
     const { fillStyle, strokeStyle } =
-      typeof style === 'string'
-        ? { fillStyle: style, strokeStyle: style }
-        : style;
+      typeof style === 'string' ? { fillStyle: style, strokeStyle: style } : style;
 
     ctx.fillStyle = fillStyle;
     ctx.fillRect(
       this._paddingX + v.x * this._tileWidth,
-      this._paddingY +
-        this._boardHeight -
-        v.y * this._tileHeight -
-        this._tileHeight,
+      this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
       this._tileWidth,
       this._tileHeight
     );
@@ -81,32 +69,19 @@ export class GameRenderer {
       ctx.strokeStyle = strokeStyle;
       ctx.strokeRect(
         this._paddingX + v.x * this._tileWidth,
-        this._paddingY +
-          this._boardHeight -
-          v.y * this._tileHeight -
-          this._tileHeight,
+        this._paddingY + this._boardHeight - v.y * this._tileHeight - this._tileHeight,
         this._tileWidth,
         this._tileHeight
       );
     }
   }
 
-  private _drawScores(
-    ctx: CanvasRenderingContext2D,
-    gameState: IGameState
-  ): void {
+  private _drawScores(ctx: CanvasRenderingContext2D, gameState: IGameState): void {
     const fontSize = Math.max(16, this._boardHeight / 20);
     ctx.font = `Bold ${fontSize}px Arial`;
 
     // Snake colors for score display (matching the snake colors)
-    const snakeColors = [
-      '#4040FF',
-      '#FF4040',
-      '#40FF40',
-      '#FFFF40',
-      '#FF40FF',
-      '#40FFFF',
-    ];
+    const snakeColors = ['#4040FF', '#FF4040', '#40FF40', '#FFFF40', '#FF40FF', '#40FFFF'];
 
     // Save current globalAlpha and set semi-transparent
     const originalAlpha = ctx.globalAlpha;
@@ -115,8 +90,7 @@ export class GameRenderer {
     gameState.snakes.forEach((snake, index) => {
       // Use the score property from the snake state
       const score = snake.score;
-      const playerName =
-        gameState.snakes.length > 1 ? `Player ${index + 1}` : 'Score';
+      const playerName = gameState.snakes.length > 1 ? `Player ${index + 1}` : 'Score';
       const scoreText = `${playerName}: ${score}`;
 
       // Position scores on the right side of the canvas
@@ -148,19 +122,10 @@ export class GameRenderer {
     }
   }
 
-  render(
-    ctx: CanvasRenderingContext2D,
-    gameState: IGameState,
-    playbackMode: boolean
-  ): void {
+  render(ctx: CanvasRenderingContext2D, gameState: IGameState, playbackMode: boolean): void {
     // Draw background
     ctx.fillStyle = 'green';
-    ctx.fillRect(
-      this._paddingX,
-      this._paddingY,
-      this._boardWidth,
-      this._boardHeight
-    );
+    ctx.fillRect(this._paddingX, this._paddingY, this._boardWidth, this._boardHeight);
 
     // Draw blocks
     gameState.blocks.forEach(block => {
@@ -174,14 +139,7 @@ export class GameRenderer {
     }
 
     // Draw snakes
-    const snakeColors = [
-      '#4040FF',
-      '#FF4040',
-      '#40FF40',
-      '#FFFF40',
-      '#FF40FF',
-      '#40FFFF',
-    ];
+    const snakeColors = ['#4040FF', '#FF4040', '#40FF40', '#FFFF40', '#FF40FF', '#40FFFF'];
     const darkenedSnakeColors = snakeColors.map(color => {
       const num = parseInt(color.slice(1), 16);
       const r = Math.max((num >> 16) - 40, 0);
