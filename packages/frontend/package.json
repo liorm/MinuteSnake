@@ -26,6 +26,7 @@
     "rimraf": "^5.0.0"
   },
   "dependencies": {
+    "@minute-snake/shared": "workspace:*",
     "seedrandom": "^3.0.5"
   }
 }

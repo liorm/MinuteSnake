@@ -1,4 +1,4 @@
-import { EDirection, GameInput, IGameState } from '../backend/game-logic';
+import { EDirection, GameInput, IGameState } from '@minute-snake/shared';
 import { IActor } from './actor';
 
 /**

@@ -1,4 +1,4 @@
-import { GameInput, IGameState } from '../backend/game-logic';
+import { GameInput, IGameState } from '@minute-snake/shared';
 
 /**
  * There are two types of actors:

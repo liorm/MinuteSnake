@@ -1,5 +1,4 @@
-import { IGameOptions, IGameState, AppleType } from './backend/game-logic';
-import { Vector } from './backend/utils';
+import { IGameOptions, IGameState, AppleType, Vector } from '@minute-snake/shared';
 
 /**
  * Defines the visual style for a game tile, supporting both

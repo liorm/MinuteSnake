@@ -1,12 +1,18 @@
-import { EDirection, GameInput, IGameStage } from './backend/game-logic';
+import {
+  EDirection,
+  GameInput,
+  IGameStage,
+  GameHandlerBase,
+  LiveHandler,
+  PlaybackHandler,
+  Vector,
+} from '@minute-snake/shared';
 import { IActor, HumanActor, AIActor } from './actors/index';
 import { GameRenderer } from './game-renderer';
 import { GameState } from './game-state';
 import { WelcomeRenderer, WelcomeScreenCallbacks, PlayerConfiguration } from './welcome-renderer';
 
 const MAX_INPUT_ITERATIONS = 10;
-import { GameHandlerBase, LiveHandler, PlaybackHandler } from './backend/state-handlers';
-import { Vector } from './backend/utils';
 
 /**
  * Core game engine that coordinates rendering, input handling, and game state.

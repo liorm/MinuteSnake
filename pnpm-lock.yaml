@@ -43,6 +43,10 @@ importers:
         version: 5.8.3
 
   packages/backend:
+    dependencies:
+      '@minute-snake/shared':
+        specifier: workspace:*
+        version: link:../shared
     devDependencies:
       '@eslint/js':
         specifier: ^9.25.0
@@ -71,6 +75,9 @@ importers:
 
   packages/frontend:
     dependencies:
+      '@minute-snake/shared':
+        specifier: workspace:*
+        version: link:../shared
       seedrandom:
         specifier: ^3.0.5
         version: 3.0.5
@@ -93,6 +100,28 @@ importers:
       rimraf:
         specifier: ^5.0.0
         version: 5.0.10
+      vitest:
+        specifier: ^3.2
+        version: 3.2.4(@vitest/ui@3.2.4)(yaml@2.8.0)
+
+  packages/shared:
+    dependencies:
+      seedrandom:
+        specifier: ^3.0.5
+        version: 3.0.5
+    devDependencies:
+      '@types/seedrandom':
+        specifier: ^3.0.0
+        version: 3.0.8
+      '@vitest/coverage-v8':
+        specifier: ^3.2
+        version: 3.2.4(vitest@3.2.4)
+      rimraf:
+        specifier: ^5.0.0
+        version: 5.0.10
+      typescript:
+        specifier: ^5.0.0
+        version: 5.8.3
       vitest:
         specifier: ^3.2
         version: 3.2.4(@vitest/ui@3.2.4)(yaml@2.8.0)
