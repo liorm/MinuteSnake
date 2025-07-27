@@ -18,9 +18,10 @@ This document provides reusable instructions for implementing each phase and sub
 
 ### After Completing Each Task
 1. **Mark the corresponding checkbox as complete** `- [x]` in `/docs/multiplayer-implementation-plan.md`
-2. **Update the master document** with any important insights, architectural changes, or lessons learned
-3. **If applicable, update the phase document** with implementation notes or clarifications
-4. **Proceed to the next unchecked task** in the same phase
+2. **Run unit tests** for new code by using the `unit-test-engineer` agent to create comprehensive test coverage
+3. **Update the master document** with any important insights, architectural changes, or lessons learned
+4. **If applicable, update the phase document** with implementation notes or clarifications
+5. **Proceed to the next unchecked task** in the same phase
 
 ### After Completing Each Phase
 1. **Verify all checkboxes are marked complete** for that phase
@@ -45,7 +46,8 @@ grep -c "\- \[" docs/multiplayer-implementation-plan.md
 2. **Read the phase document**: Open `/docs/phase{N}/{task}.md` for detailed specifications
 3. **Implement the feature**: Follow the technical specifications and deliverables
 4. **Test the implementation**: Ensure success criteria are met
-5. **Update progress**: Mark checkbox complete and update docs
+5. **Create unit tests**: Use the `unit-test-engineer` agent to generate comprehensive tests for new code
+6. **Update progress**: Mark checkbox complete and update docs
 
 ### Updating Progress
 ```bash
@@ -108,7 +110,8 @@ grep -A3 -B3 "\- \[ \]" docs/multiplayer-implementation-plan.md | head -10
 Before marking any task complete:
 - [ ] Implementation meets all success criteria in the phase document
 - [ ] Code follows existing project patterns and conventions
-- [ ] Tests pass (if applicable)
+- [ ] Unit tests created using `unit-test-engineer` agent for new code
+- [ ] All tests pass (existing and new)
 - [ ] Documentation is updated
 - [ ] No breaking changes to existing functionality
 

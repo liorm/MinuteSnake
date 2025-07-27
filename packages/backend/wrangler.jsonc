@@ -6,11 +6,12 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "minute-snake-backend",
 	"main": "src/index.ts",
-	"compatibility_date": "2025-07-19",
+	"compatibility_date": "2024-12-30",
+	"compatibility_flags": ["nodejs_compat"],
 	"migrations": [
 		{
 			"new_sqlite_classes": [
-				"MyDurableObject"
+				"GameRoomObject"
 			],
 			"tag": "v1"
 		}
@@ -18,8 +19,8 @@
 	"durable_objects": {
 		"bindings": [
 			{
-				"class_name": "MyDurableObject",
-				"name": "MY_DURABLE_OBJECT"
+				"class_name": "GameRoomObject",
+				"name": "GAME_ROOM_OBJECT"
 			}
 		]
 	},
