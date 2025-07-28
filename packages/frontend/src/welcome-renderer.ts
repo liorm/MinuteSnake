@@ -4,16 +4,24 @@
 export interface PlayerConfiguration {
   humanPlayers: number;
   aiPlayers: number;
+  isMultiplayer: boolean;
+  roomId?: string;
+  playerName?: string;
 }
 
 /**
  * Welcome screen menu items
  */
 export enum WelcomeMenuItem {
-  HUMAN_PLAYERS = 0,
-  AI_PLAYERS = 1,
-  START = 2,
+  GAME_MODE = 0,
+  HUMAN_PLAYERS = 1,
+  AI_PLAYERS = 2,
+  PLAYER_NAME = 3,
+  ROOM_ID = 4,
+  START = 5,
 }
+
+import { ConnectionState } from './websocket-client';
 
 /**
  * Callback interface for welcome screen completion
@@ -26,7 +34,7 @@ export interface WelcomeScreenCallbacks {
  * Handles rendering and input for the welcome screen using HTML5 Canvas API.
  * Displays the game title, instructions, and interactive player selection menu
  * with responsive sizing that adapts to different screen dimensions.
- * Manages its own state and input handling.
+ * Manages its own state and input handling, including multiplayer connection status.
  */
 export class WelcomeRenderer {
   private _canvasWidth: number = 0;
@@ -34,8 +42,13 @@ export class WelcomeRenderer {
   private _playerConfig: PlayerConfiguration = {
     humanPlayers: 1,
     aiPlayers: 2,
+    isMultiplayer: false,
+    roomId: '',
+    playerName: 'Player1',
   };
-  private _selectedMenuItem: WelcomeMenuItem = WelcomeMenuItem.HUMAN_PLAYERS;
+  private _selectedMenuItem: WelcomeMenuItem = WelcomeMenuItem.GAME_MODE;
+  private _connectionState: ConnectionState = ConnectionState.DISCONNECTED;
+  private _inputBuffer: string = '';
 
   /**
    * Updates the renderer's understanding of canvas dimensions.
@@ -47,6 +60,13 @@ export class WelcomeRenderer {
   }
 
   /**
+   * Updates the connection state for multiplayer display
+   */
+  updateConnectionState(state: ConnectionState): void {
+    this._connectionState = state;
+  }
+
+  /**
    * Handles keyboard input for the welcome screen.
    * @param event Keyboard event
    * @param callbacks Callback functions for screen completion
@@ -54,18 +74,40 @@ export class WelcomeRenderer {
   handleKeyInput(event: KeyboardEvent, callbacks: WelcomeScreenCallbacks): void {
     const key = event.key.toLowerCase();
 
+    // Handle text input for player name and room ID
+    if (
+      this._selectedMenuItem === WelcomeMenuItem.PLAYER_NAME ||
+      this._selectedMenuItem === WelcomeMenuItem.ROOM_ID
+    ) {
+      if (key === 'backspace') {
+        this._inputBuffer = this._inputBuffer.slice(0, -1);
+        this._updateFromInputBuffer();
+        return;
+      } else if (key === 'enter') {
+        this._updateFromInputBuffer();
+        this._selectedMenuItem = Math.min(WelcomeMenuItem.START, this._selectedMenuItem + 1);
+        return;
+      } else if (key.length === 1 && this._isValidInputChar(key)) {
+        this._inputBuffer += key;
+        this._updateFromInputBuffer();
+        return;
+      }
+    }
+
     switch (key) {
       case 'arrowup':
         this._selectedMenuItem = Math.max(0, this._selectedMenuItem - 1);
+        this._initializeInputBuffer();
         break;
       case 'arrowdown':
         this._selectedMenuItem = Math.min(WelcomeMenuItem.START, this._selectedMenuItem + 1);
+        this._initializeInputBuffer();
         break;
       case 'arrowleft':
-        this._adjustPlayerCount(-1);
+        this._adjustValue(-1);
         break;
       case 'arrowright':
-        this._adjustPlayerCount(1);
+        this._adjustValue(1);
         break;
       case 'enter':
         if (this._selectedMenuItem === WelcomeMenuItem.START) {
@@ -87,14 +129,52 @@ export class WelcomeRenderer {
     }
   }
 
-  private _adjustPlayerCount(delta: number): void {
-    if (this._selectedMenuItem === WelcomeMenuItem.HUMAN_PLAYERS) {
-      this._playerConfig.humanPlayers = Math.max(
-        0,
-        Math.min(2, this._playerConfig.humanPlayers + delta)
-      );
-    } else if (this._selectedMenuItem === WelcomeMenuItem.AI_PLAYERS) {
-      this._playerConfig.aiPlayers = Math.max(0, Math.min(6, this._playerConfig.aiPlayers + delta));
+  private _adjustValue(delta: number): void {
+    switch (this._selectedMenuItem) {
+      case WelcomeMenuItem.GAME_MODE:
+        this._playerConfig.isMultiplayer = !this._playerConfig.isMultiplayer;
+        break;
+      case WelcomeMenuItem.HUMAN_PLAYERS:
+        this._playerConfig.humanPlayers = Math.max(
+          0,
+          Math.min(
+            this._playerConfig.isMultiplayer ? 1 : 2,
+            this._playerConfig.humanPlayers + delta
+          )
+        );
+        break;
+      case WelcomeMenuItem.AI_PLAYERS:
+        this._playerConfig.aiPlayers = Math.max(
+          0,
+          Math.min(6, this._playerConfig.aiPlayers + delta)
+        );
+        break;
+    }
+  }
+
+  private _isValidInputChar(char: string): boolean {
+    return /[a-zA-Z0-9-_]/.test(char);
+  }
+
+  private _initializeInputBuffer(): void {
+    switch (this._selectedMenuItem) {
+      case WelcomeMenuItem.PLAYER_NAME:
+        this._inputBuffer = this._playerConfig.playerName || '';
+        break;
+      case WelcomeMenuItem.ROOM_ID:
+        this._inputBuffer = this._playerConfig.roomId || '';
+        break;
+    }
+  }
+
+  private _updateFromInputBuffer(): void {
+    switch (this._selectedMenuItem) {
+      case WelcomeMenuItem.PLAYER_NAME:
+        this._playerConfig.playerName = this._inputBuffer;
+        break;
+      case WelcomeMenuItem.ROOM_ID:
+        this._playerConfig.roomId = this._inputBuffer;
+        break;
     }
   }
 
@@ -102,6 +182,16 @@ export class WelcomeRenderer {
     // Validate that at least one player is selected
     if (this._playerConfig.humanPlayers + this._playerConfig.aiPlayers === 0) {
       return; // Don't start game if no players selected
+    }
+
+    // Validate multiplayer configuration
+    if (this._playerConfig.isMultiplayer) {
+      if (!this._playerConfig.playerName || this._playerConfig.playerName.trim() === '') {
+        return; // Don't start if no player name in multiplayer
+      }
+      if (!this._playerConfig.roomId || this._playerConfig.roomId.trim() === '') {
+        return; // Don't start if no room ID in multiplayer
+      }
     }
 
     callbacks.onStartGame(this._playerConfig);
@@ -144,18 +234,60 @@ export class WelcomeRenderer {
     const menuItemHeight = menuFontSize * 2;
     ctx.font = `${menuFontSize}px Arial`;
 
-    // Menu items
-    const menuItems = [
-      {
-        text: `Human players: ${this._playerConfig.humanPlayers}`,
-        menuItem: WelcomeMenuItem.HUMAN_PLAYERS,
-      },
-      {
-        text: `AI players: ${this._playerConfig.aiPlayers}`,
-        menuItem: WelcomeMenuItem.AI_PLAYERS,
-      },
-      { text: 'Start', menuItem: WelcomeMenuItem.START },
-    ];
+    // Build menu items based on game mode
+    const menuItems = [];
+
+    // Game mode selection
+    menuItems.push({
+      text: `Game mode: ${this._playerConfig.isMultiplayer ? 'Multiplayer' : 'Single-player'}`,
+      menuItem: WelcomeMenuItem.GAME_MODE,
+      hasArrows: true,
+    });
+
+    // Player configuration
+    menuItems.push({
+      text: `Human players: ${this._playerConfig.humanPlayers}`,
+      menuItem: WelcomeMenuItem.HUMAN_PLAYERS,
+      hasArrows: true,
+    });
+
+    menuItems.push({
+      text: `AI players: ${this._playerConfig.aiPlayers}`,
+      menuItem: WelcomeMenuItem.AI_PLAYERS,
+      hasArrows: true,
+    });
+
+    // Multiplayer-specific options
+    if (this._playerConfig.isMultiplayer) {
+      const playerNameText =
+        this._selectedMenuItem === WelcomeMenuItem.PLAYER_NAME
+          ? `Player name: ${this._inputBuffer}_`
+          : `Player name: ${this._playerConfig.playerName || '(enter name)'}`;
+
+      menuItems.push({
+        text: playerNameText,
+        menuItem: WelcomeMenuItem.PLAYER_NAME,
+        hasArrows: false,
+      });
+
+      const roomIdText =
+        this._selectedMenuItem === WelcomeMenuItem.ROOM_ID
+          ? `Room ID: ${this._inputBuffer}_`
+          : `Room ID: ${this._playerConfig.roomId || '(enter room)'}`;
+
+      menuItems.push({
+        text: roomIdText,
+        menuItem: WelcomeMenuItem.ROOM_ID,
+        hasArrows: false,
+      });
+    }
+
+    // Start button
+    menuItems.push({
+      text: 'Start',
+      menuItem: WelcomeMenuItem.START,
+      hasArrows: false,
+    });
 
     // Draw menu items
     menuItems.forEach((item, index) => {
@@ -165,18 +297,15 @@ export class WelcomeRenderer {
       // Draw selection indicator
       if (isSelected) {
         ctx.fillStyle = '#3498db';
-        ctx.fillRect(canvasWidth / 2 - 200, y - menuFontSize * 0.7, 400, menuFontSize * 1.4);
+        ctx.fillRect(canvasWidth / 2 - 250, y - menuFontSize * 0.7, 500, menuFontSize * 1.4);
       }
 
       // Draw menu item text
       ctx.fillStyle = isSelected ? '#ffffff' : '#ecf0f1';
       ctx.fillText(item.text, canvasWidth / 2, y);
 
-      // Draw arrows for player count items
-      if (
-        item.menuItem === WelcomeMenuItem.HUMAN_PLAYERS ||
-        item.menuItem === WelcomeMenuItem.AI_PLAYERS
-      ) {
+      // Draw arrows for adjustable items
+      if (item.hasArrows) {
         ctx.fillStyle = isSelected ? '#ffffff' : '#95a5a6';
 
         // Calculate text width and position arrows outside the text
@@ -190,14 +319,51 @@ export class WelcomeRenderer {
       }
     });
 
+    // Draw connection status for multiplayer
+    if (this._playerConfig.isMultiplayer) {
+      const statusY = menuStartY + menuItems.length * menuItemHeight + menuFontSize;
+      ctx.font = `${menuFontSize * 0.8}px Arial`;
+
+      let statusText = '';
+      let statusColor = '';
+
+      switch (this._connectionState) {
+        case ConnectionState.DISCONNECTED:
+          statusText = '○ Disconnected';
+          statusColor = '#95a5a6';
+          break;
+        case ConnectionState.CONNECTING:
+          statusText = '◐ Connecting...';
+          statusColor = '#f39c12';
+          break;
+        case ConnectionState.CONNECTED:
+          statusText = '● Connected';
+          statusColor = '#27ae60';
+          break;
+        case ConnectionState.RECONNECTING:
+          statusText = '◑ Reconnecting...';
+          statusColor = '#e67e22';
+          break;
+        case ConnectionState.ERROR:
+          statusText = '✗ Connection Error';
+          statusColor = '#e74c3c';
+          break;
+      }
+
+      ctx.fillStyle = statusColor;
+      ctx.fillText(`Connection: ${statusText}`, canvasWidth / 2, statusY);
+    }
+
     // Draw instructions
-    const instructionY = menuStartY + menuItems.length * menuItemHeight + menuFontSize * 2;
-    const instructionFontSize = Math.min(canvasWidth, canvasHeight) / 35;
+    const connectionOffset = this._playerConfig.isMultiplayer ? menuFontSize * 1.5 : 0;
+    const instructionY =
+      menuStartY + menuItems.length * menuItemHeight + menuFontSize * 2 + connectionOffset;
+    const instructionFontSize = Math.min(canvasWidth, canvasHeight) / 40;
     ctx.font = `${instructionFontSize}px Arial`;
     ctx.fillStyle = '#bdc3c7';
 
     const instructions = [
-      '↑↓ Navigate menu • ◀▶ Adjust players • ENTER Start game',
+      '↑↓ Navigate • ◀▶ Adjust • ENTER Confirm/Start • Type for text fields',
       '',
       'Game Controls: Arrow keys (Player 1) • WASD (Player 2)',
       'P: Playback • N: New game • ESC: Menu • +/-: Speed',
@@ -208,16 +374,24 @@ export class WelcomeRenderer {
       ctx.fillText(instruction, canvasWidth / 2, y);
     });
 
-    // Draw total players validation
+    // Draw validation messages
     const totalPlayers = this._playerConfig.humanPlayers + this._playerConfig.aiPlayers;
+    let validationMessage = '';
+
     if (totalPlayers === 0) {
+      validationMessage = '⚠ Select at least one player to start';
+    } else if (this._playerConfig.isMultiplayer) {
+      if (!this._playerConfig.playerName || this._playerConfig.playerName.trim() === '') {
+        validationMessage = '⚠ Enter player name for multiplayer';
+      } else if (!this._playerConfig.roomId || this._playerConfig.roomId.trim() === '') {
+        validationMessage = '⚠ Enter room ID for multiplayer';
+      }
+    }
+
+    if (validationMessage) {
       ctx.font = `Bold ${menuFontSize * 0.8}px Arial`;
       ctx.fillStyle = '#e74c3c';
-      ctx.fillText(
-        '⚠ Select at least one player to start',
-        canvasWidth / 2,
-        instructionY - menuFontSize
-      );
+      ctx.fillText(validationMessage, canvasWidth / 2, instructionY - menuFontSize);
     }
   }
 }

@@ -11,6 +11,7 @@ import { IActor, HumanActor, AIActor } from './actors/index';
 import { GameRenderer } from './game-renderer';
 import { GameState } from './game-state';
 import { WelcomeRenderer, WelcomeScreenCallbacks, PlayerConfiguration } from './welcome-renderer';
+import { WebSocketClient, ConnectionState, IncomingMessage } from './websocket-client';
 
 const MAX_INPUT_ITERATIONS = 10;
 
@@ -31,6 +32,8 @@ export class GameEngine {
   private _actors: IActor[] = [];
   private _currentState: GameState = GameState.WELCOME;
   private _welcomeCallbacks: WelcomeScreenCallbacks;
+  private _wsClient: WebSocketClient | null = null;
+  private _isMultiplayer = false;
 
   constructor(
     private window: Window,
@@ -38,7 +41,11 @@ export class GameEngine {
     private ctx: CanvasRenderingContext2D
   ) {
     this._welcomeCallbacks = {
-      onStartGame: (config: PlayerConfiguration): void => this._startGame(config),
+      onStartGame: (config: PlayerConfiguration): void => {
+        this._startGame(config).catch(error => {
+          console.error('Failed to start game:', error);
+        });
+      },
     };
   }
 
@@ -307,7 +314,48 @@ export class GameEngine {
    * Transitions from welcome screen to active gameplay.
    * Initializes the game state and begins the game loop.
    */
-  private _startGame(playerConfig: PlayerConfiguration): void {
+  private async _startGame(playerConfig: PlayerConfiguration): Promise<void> {
+    this._isMultiplayer = playerConfig.isMultiplayer;
+
+    // Handle multiplayer setup
+    if (playerConfig.isMultiplayer) {
+      if (!playerConfig.playerName || !playerConfig.roomId) {
+        console.error('Missing player name or room ID for multiplayer');
+        return;
+      }
+
+      // Create WebSocket client
+      this._wsClient = new WebSocketClient(
+        {
+          baseUrl: 'ws://localhost:8787', // TODO: Make this configurable
+          roomId: playerConfig.roomId,
+          playerId: crypto.randomUUID(),
+          playerName: playerConfig.playerName,
+        },
+        {
+          onStateChange: (state: ConnectionState): void => {
+            this._welcomeRenderer.updateConnectionState(state);
+          },
+          onMessage: (message: IncomingMessage): void => {
+            this._handleWebSocketMessage(message);
+          },
+          onError: (error: Error): void => {
+            console.error('WebSocket error:', error);
+          },
+        }
+      );
+
+      // Connect to the server
+      try {
+        await this._wsClient.connect();
+        // Connected to multiplayer server
+      } catch (error) {
+        console.error('Failed to connect to multiplayer server:', error);
+        // Stay on welcome screen if connection fails
+        return;
+      }
+    }
+
     this._currentState = GameState.PLAYING;
 
     // Create actors based on configuration
@@ -358,6 +406,38 @@ export class GameEngine {
   }
 
   /**
+   * Handles incoming WebSocket messages from the multiplayer server
+   */
+  private _handleWebSocketMessage(message: IncomingMessage): void {
+    // TODO: Add proper UI for multiplayer messages
+
+    switch (message.type) {
+      case 'chat':
+        // TODO: Display chat message in game UI
+        break;
+
+      case 'player_joined':
+        // TODO: Show player joined notification
+        break;
+
+      case 'player_left':
+        // TODO: Show player left notification
+        break;
+
+      case 'pong':
+        // Pong responses are handled automatically by the WebSocket client
+        break;
+
+      case 'error':
+        console.error('Server error:', message.message);
+        break;
+
+      default:
+        console.warn('Unknown message type:', message);
+    }
+  }
+
+  /**
    * Returns to the welcome screen from any other state.
    * Resets the game state and clears actors.
    */
@@ -365,6 +445,13 @@ export class GameEngine {
     this._currentState = GameState.WELCOME;
     this._actors = [];
     this._isPlaybackMode = false;
+
+    // Disconnect WebSocket client if connected
+    if (this._wsClient) {
+      this._wsClient.disconnect();
+      this._wsClient = null;
+    }
+    this._isMultiplayer = false;
   }
 
   /**
