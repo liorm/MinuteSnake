@@ -1404,6 +1404,93 @@ describe('Storage Persistence and State Recovery', () => {
     stub = env.GAME_ROOM_OBJECT.get(id);
   });
 
+  describe('Constructor State Initialization', () => {
+    it('should properly initialize roomState from storage to enable all functionality', async () => {
+      // This test verifies that the storage initialization fix works correctly
+      // It focuses on ensuring the full workflow works end-to-end
+
+      const testRoomId = `storage-test-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+
+      // Create separate stubs to ensure we test the initialization properly
+      const createStub = env.GAME_ROOM_OBJECT.get(env.GAME_ROOM_OBJECT.idFromName(testRoomId));
+
+      // Step 1: Create room and verify it's stored
+      const createResponse = await createStub.fetch(
+        `http://example.com/room/create?roomId=${testRoomId}&maxPlayers=3`
+      );
+      expect(createResponse.status).toBe(200);
+      const createData = await createResponse.json();
+      expect(createData.success).toBe(true);
+      expect(createData.roomId).toBe(testRoomId);
+
+      // Step 2: Use multiple different stub instances to test storage persistence
+      // This tests that storage initialization works across different access patterns
+
+      // Test info access
+      const infoStub = env.GAME_ROOM_OBJECT.get(env.GAME_ROOM_OBJECT.idFromName(testRoomId));
+      const infoResponse = await infoStub.fetch('http://example.com/room/info');
+      expect(infoResponse.status).toBe(200);
+      const infoData = await infoResponse.json();
+      expect(infoData.roomId).toBe(testRoomId);
+      expect(infoData.maxPlayers).toBe(3);
+
+      // Test WebSocket access
+      const wsStub = env.GAME_ROOM_OBJECT.get(env.GAME_ROOM_OBJECT.idFromName(testRoomId));
+      const wsResponse = await wsStub.fetch(
+        `http://example.com/ws-test?playerId=player1&playerName=Player1`,
+        { headers: { Upgrade: 'websocket' } }
+      );
+      expect(wsResponse.status).toBe(101);
+
+      // Test create existing room
+      const duplicateStub = env.GAME_ROOM_OBJECT.get(env.GAME_ROOM_OBJECT.idFromName(testRoomId));
+      const duplicateResponse = await duplicateStub.fetch(
+        `http://example.com/room/create?roomId=${testRoomId}`
+      );
+      expect(duplicateResponse.status).toBe(200);
+      const duplicateData = await duplicateResponse.json();
+      expect(duplicateData.message).toBe('Room already exists');
+
+      // Final verification - all these operations should work seamlessly
+      // because roomState is properly loaded from storage in constructor
+      const finalStub = env.GAME_ROOM_OBJECT.get(env.GAME_ROOM_OBJECT.idFromName(testRoomId));
+      const finalInfoResponse = await finalStub.fetch('http://example.com/room/info');
+      const finalInfo = await finalInfoResponse.json();
+      expect(finalInfo.roomId).toBe(testRoomId);
+      expect(finalInfo.playerCount).toBe(1); // Should have player1 connected
+    });
+
+    it('should handle storage initialization robustly', async () => {
+      // Test the robustness of storage initialization
+      const testRoomId = `robust-test-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+      const stub = env.GAME_ROOM_OBJECT.get(env.GAME_ROOM_OBJECT.idFromName(testRoomId));
+
+      // Create room
+      await stub.fetch(`http://example.com/room/create?roomId=${testRoomId}&maxPlayers=2`);
+
+      // Multiple rapid operations should all work correctly
+      const operations = await Promise.all([
+        stub.fetch('http://example.com/room/info'),
+        stub.fetch(`http://example.com/room/create?roomId=${testRoomId}`),
+        stub.fetch('http://example.com/room/info'),
+        stub.fetch(`http://example.com/ws-test?playerId=player1&playerName=Player1`, {
+          headers: { Upgrade: 'websocket' },
+        }),
+      ]);
+
+      // All operations should succeed
+      expect(operations[0].status).toBe(200); // info
+      expect(operations[1].status).toBe(200); // create existing
+      expect(operations[2].status).toBe(200); // info again
+      expect(operations[3].status).toBe(101); // websocket
+
+      // Verify final state
+      const finalInfo = await operations[2].json();
+      expect(finalInfo.roomId).toBe(testRoomId);
+      expect(finalInfo.maxPlayers).toBe(2);
+    });
+  });
+
   describe('Room State Persistence', () => {
     it('should persist room state to Durable Object storage', async () => {
       // Create room with specific configuration

@@ -24,6 +24,10 @@ export class GameRoomObject extends DurableObject<Env> {
     this.connections = new Map();
     this.players = new Map();
     this.roomState = null;
+
+    ctx.blockConcurrencyWhile(async () => {
+      this.roomState = (await ctx.storage.get<RoomState>('roomState')) || null;
+    });
   }
 
   async fetch(request: Request): Promise<Response> {
